@@ -4,7 +4,8 @@ author: "Laura Sudupe"
 date: "24/09/2020"
 output: pdf_document
 ---
-a) Importar el fichero stressEchoMale.csv que corresponde a los datos de los hombres y guardarlos en un data frame llamado stressEchoMaleData. 
+a) Importar el fichero stressEchoMale.csv que corresponde a los datos de los
+hombres y guardarlos en un data frame llamado stressEchoMaleData. 
 
 ```{r}
 stressechoMaledata <- 
@@ -17,7 +18,7 @@ b) Importar el fichero stressEchoFem.dta que corresponde a los datos de las muje
 library(foreign)
 stressEchoFemaleData <- 
   read.dta('/Users/sudup/OneDrive/Documentos/UOC MATERIALES/SOFTWARE/LAB1_datos/SAD_LAB1_datos/stressEchoFem.dta')
-stressEchoFemaleData
+head(stressEchoFemaleData)
 ```
 
 c) Especificar cómo cambiaríais el directorio donde guardar los ficheros de datos y
@@ -32,7 +33,7 @@ rbind()).
 
 ```{r}
 stressEchoDataSet <- rbind(stressechoMaledata, stressEchoFemaleData)
-stressEchoDataSet
+head(stressEchoDataSet)
 ```
 
 e) Mostrar las características más importantes del data frame stressEchoDataSet, es
@@ -66,7 +67,7 @@ f) Exportar el data frame stressEchoDataSet a un fichero en formato texto, es de
 stressEchoDataSet_txt <-
   write.table(stressEchoDataSet, '/Users/sudup/OneDrive/Documentos/UOC MATERIALES/SOFTWARE/LAB1_datos/SAD_LAB1_datos/stressEchoDataSet.txt', sep=' ' )
 #En Rcommander ejecutar la siguiente instrucción 
-library(Rcmdr)
+#library(Rcmdr)
 
 #Una vez abierto R-Commander, clicamos en «No hay conjunto de datos activo» y seleccionamos stressEchoDataset. Así, una vez
 #cargados los datos, seleccionamos Datos / Conjunto de datos activo / Exportar conjunto de datos activo. 
