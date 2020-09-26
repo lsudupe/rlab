@@ -1,0 +1,131 @@
+---
+title: "Caso practico 2"
+author: "Laura Sudupe"
+date: "24/09/2020"
+output: pdf_document
+---
+a) Importar el fichero stressEchoMale.csv que corresponde a los datos de los
+hombres y guardarlos en un data frame llamado stressEchoMaleData. 
+
+```{r}
+stressechoMaledata <- 
+  read.csv('/Users/sudup/OneDrive/Documentos/UOC MATERIALES/SOFTWARE/LAB1_datos/SAD_LAB1_datos/stressEchoMale.csv',header=TRUE)
+```
+
+b) Importar el fichero stressEchoFem.dta que corresponde a los datos de las mujeres y guardarlos en un data frame llamado stressEchoFemaleData. 
+
+```{r}
+library(foreign)
+stressEchoFemaleData <- 
+  read.dta('/Users/sudup/OneDrive/Documentos/UOC MATERIALES/SOFTWARE/LAB1_datos/SAD_LAB1_datos/stressEchoFem.dta')
+head(stressEchoFemaleData)
+```
+
+c) Especificar cómo cambiaríais el directorio donde guardar los ficheros de datos y
+de código que generáis con R-Studio.
+
+```{r}
+setwd('/Users/sudup/OneDrive/Documentos/UOC MATERIALES/SOFTWARE/')
+```
+
+d) Crear un data frame llamado stressEchoDataSet que contenga los datos de stressEchoMaleData y stressEchoFemaleData (Pista: podéis utilizar la función
+rbind()).
+
+```{r}
+stressEchoDataSet <- rbind(stressechoMaledata, stressEchoFemaleData)
+head(stressEchoDataSet)
+```
+
+e) Mostrar las características más importantes del data frame stressEchoDataSet, es
+decir, captura de los primeros y últimos registros de datos, nombre de las
+columnas, tipos de variables,…
+
+```{r}
+head(stressEchoDataSet) #Para ver las primeras lineas
+```
+
+```{r}
+tail(stressEchoDataSet) #Para ver las ultimas lineas
+```
+
+```{r}
+names(stressEchoDataSet) #Para ver el nombre de las columnas
+```
+
+```{r}
+str(stressEchoDataSet) #Nos da la estructura del dataframe
+```
+
+```{r}
+dim(stressEchoDataSet) #Nos da la dimensión
+```
+
+f) Exportar el data frame stressEchoDataSet a un fichero en formato texto, es decir, mostrar cómo se realizaría en R desde RStudio y cómo se haría desde RCommander
+
+```{r}
+#Primero en Rstudio
+stressEchoDataSet_txt <-
+  write.table(stressEchoDataSet, '/Users/sudup/OneDrive/Documentos/UOC MATERIALES/SOFTWARE/LAB1_datos/SAD_LAB1_datos/stressEchoDataSet.txt', sep=' ' )
+#En Rcommander ejecutar la siguiente instrucción 
+#library(Rcmdr)
+
+#Una vez abierto R-Commander, clicamos en «No hay conjunto de datos activo» y seleccionamos stressEchoDataset. Así, una vez
+#cargados los datos, seleccionamos Datos / Conjunto de datos activo / Exportar conjunto de datos activo. 
+```
+
+g) Realizar las siguientes consultas a partir del data frame stressEchoDataSet:
+• Calcular el número de pacientes que han realizado el estudio en stressEchoDataSet y cuántos parámetros se han analizado.
+
+```{r}
+dim(stressEchoDataSet)
+```
+
+• Mostrar en una tabla, la distribución por la variable age del data frame stressEchoDataSet y la ordenación de estas edades en modo ascendente (Pista:
+podéis consultar en la Ayuda de R-Studio la función ordered()).
+
+```{r}
+#stressEchoDataSet_age <- ordered(stressEchoDataSet$age)
+stressEchoDataSet_age <- factor(stressEchoDataSet$age,ordered=is.ordered(stressEchoDataSet$age))
+stressEchoDataSet_age
+```
+
+• Crear un vector que guarde los datos del paciente de menor edad e indicar la sintaxis para mostrar esta información por pantalla.
+
+```{r}
+stressEchoDataSet_min_age <- c(min(stressEchoDataSet$age))
+stressEchoDataSet_min_age
+```
+
+
+• Crear un vector que incluya los id de los pacientes que tengan menos de 50 años, ¿cuántos pacientes hay?
+
+```{r}
+stressEchoDataSet_menos50 <- stressEchoDataSet$idPatient[c(stressEchoDataSet$age < 50)]
+stressEchoDataSet_menos50
+```
+
+• Crear un vector que guarde las dosis otorgadas a cada paciente y especificar el valor mínimo y máximo de dosis asignadas. ¿A qué id de paciente o pacientes corresponde la menor dosis asignada? ¿Corresponde a hombres o a mujeres? Mostrar toda la información de estos pacientes.
+
+```{r}
+dosis_paciente <- c(stressEchoDataSet$dose)
+max_dosis <- max(dosis_paciente)
+min_dosis <- min(dosis_paciente)
+
+#Id paciente min dosis
+id_paciente_min_dosis <- stressEchoDataSet$idPatient[stressEchoDataSet$dose== min_dosis]
+id_paciente_min_dosis
+
+#Genero dosis min
+genero_dosis_min <- stressEchoDataSet$gender[stressEchoDataSet$dose == min_dosis]
+genero_dosis_min
+
+#Info correspondiente a los pacientes referidos
+pacientes_dosis_min <- subset(stressEchoDataSet, stressEchoDataSet$dose == min_dosis)
+pacientes_dosis_min
+
+```
+
+
+
+
+
