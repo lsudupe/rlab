@@ -1,0 +1,89 @@
+---
+title: "Caso practico 1"
+author: "Laura Sudupe"
+date: "28/09/2020"
+output: pdf_document
+---
+
+a) Importar los datos del fichero wisc_bc_data.csv y guardarlos en un data frame 
+llamado dataBreastCancer. Mostrar los datos resultantes
+
+```{r}
+dataBreastCancer <- read.csv("/Users/sudup/OneDrive/Documentos/UOC MATERIALES/SOFTWARE/LAB1_datos/SAD_LAB1_datos/wisc_bc_data.csv", header=TRUE)
+head(dataBreastCancer)
+```
+
+b)Mostrar en qué directorio tenéis ubicados los ficheros de datos que generáis
+desde RStudio y cambiar el directorio para guardar los ejercicios del LAB1 en la
+carpeta SAD_LAB1.
+
+```{r}
+getwd()
+setwd('/Users/sudup/OneDrive/Documentos/UOC MATERIALES/SOFTWARE/LAB1_datos/SAD_LAB1_datos/')
+```
+
+c) Mostrar las características más importantes del data frame dataBreastCancer
+
+```{r}
+names(dataBreastCancer)
+str(dataBreastCancer)
+dim(dataBreastCancer)
+```
+
+d) Exportar el data frame dataBreastCancer a un fichero en formato texto y otro en
+formato *.dta (compatible con STATA ((http://www.stata.com)). Especificar la
+instrucción en R para realizar la exportación desde RStudio y RCommander.
+
+```{r}
+library(foreign)
+library(Rcmdr)
+
+write.table(dataBreastCancer, '/Users/sudup/OneDrive/Documentos/UOC MATERIALES/SOFTWARE/LAB1_datos/SAD_LAB1_datos/dataBreatCancer.txt', quote=FALSE)
+write.dta(dataBreastCancer, '/Users/sudup/OneDrive/Documentos/UOC MATERIALES/SOFTWARE/LAB1_datos/SAD_LAB1_datos/dataBreatCancer.dta')
+
+```
+
+e) Realizar las siguientes consultas a partir del data frame dataBreastCancer:
+.Mostrar de qué tipo es la variable diagnosis y qué niveles contiene.
+
+```{r}
+class(dataBreastCancer$diagnosis)
+factor(dataBreastCancer$diagnosis)
+```
+
+.¿Cuántos diagnósticos de la muestra son benignos ("B") y cuántos malignos 
+("M")? 
+
+```{r}
+table(dataBreastCancer$diagnosis)
+```
+
+.Mostrar los datos de los pacientes a los que se les ha diagnosticado un tumor
+benigno ("B")
+
+```{r}
+data_B <- subset(dataBreastCancer, dataBreastCancer$diagnosis=='B')
+data_B
+```
+
+.Definir un vector que guarde los datos del primer paciente y mostrad el valor 
+de dicho vector.
+
+```{r}
+paciente_1 <- c(dataBreastCancer[1,])
+paciente_1
+```
+
+.Definir un vector que guarde los area_mean de cada paciente y especificad cuál es el valor mínimo y máximo de estos valores. 
+
+```{r}
+area_mean_pacients <- (dataBreastCancer$area_mean)
+max_area_mean <- max(area_mean_pacients)
+min_area_mean <- min(area_mean_pacients)
+max_area_mean
+min_area_mean
+```
+
+
+
+
