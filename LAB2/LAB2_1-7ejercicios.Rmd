@@ -1,0 +1,6 @@
+---
+title: "Ejercicios LAB2 1-7"
+author: "Laura Sudupe"
+date: "12/10/2020"
+output: html_document
+---

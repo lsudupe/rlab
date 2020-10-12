@@ -1,0 +1,121 @@
+---
+title: "Ejercicio 8 LAB2"
+author: "Laura Sudupe"
+date: "12/10/2020"
+output: html_document
+---
+
+Utilizad los datos Altpes.xls (adjuntos) relativos a la altura(cm) y el peso 
+(kg) de 30 individuos para saber si existe relación e intentad estimar el peso 
+de una persona a partir de su altura.
+
+P1: cargamos los datos, observamos el dataset y resumimos nuestras variables
+
+```{r}
+altpes <- read_delim('/Users/lsudu/code/rlab/LAB2/LAB2_Data/Altpes.csv',
+                      ';', escape_double =FALSE, trim_ws=TRUE)
+head(altpes)
+summary(altpes)
+
+```
+
+P2: Representamos las variables con un grafico de dispersión usando la funcion
+plot(). En nuestro caso, la variable "x" sera la altura, y la variable peso 
+la "y"
+
+```{r}
+plot(altpes$Altura, altpes$Peso, xlab='altura', ylab='peso')
+```
+P3: Como vemos en este gráfico, existe una relación lineal entre la altura y el 
+peso aunque hay algunos puntos que se alejan. En este punto generamos nuestro 
+modelo lineal y estimamos los parámetros que tendrá.
+.
+
+```{r}
+modelo <- lm(altpes$Altura~altpes$Peso, data=altpes)
+summary(modelo)
+
+```
+P4: Para ajustar la recta de regresión debemos mirar el valor estimado
+de los parámetros en el resumen anterior. Nos fijamos en el coeficiente
+de determinación (R2) o "R-squared" = 0.5418 para comprobar cómo de bueno es el
+ajuste. Bastante malo
+
+P5: Miramos la correlación de Pearson con la matriz de coeficientes de
+correlación y con el test de Pearson. Para medir una tendencia lineal entre dos
+variables numericas
+
+```{r}
+cor(altpes)
+cor.test(altpes$Altura, altpes$Peso, method='pearson')
+
+```
+```{r}
+#Otra manera de representarlo
+install.packages('PerformanceAnalytics')
+library(PerformanceAnalytics)
+data <- data.frame(altpes$Altura, altpes$Peso)
+chart.Correlation(data)
+```
+
+P6: Miramos la normalidad, es decir, si los errores estandarizados
+siguen una distribución normal con 3 gráficos.
+
+```{r}
+install.packages('AER')
+library(AER)
+residuos<-rstandard(modelo) # residuos estándares del modelo ajustado (completo) 
+par(mfrow=c(1,3)) # divide la ventana en una fila y tres columnas 
+hist(residuos) # histograma de los residuos estandarizados 
+boxplot(residuos) # diagrama de cajas de los residuos estandarizados 
+qqnorm(residuos) # gráfico de cuantiles de los residuos estandarizados 
+abline(h=0)
+par(mfrow=c(1,1)) # devuelve la pantalla a su estado original sin divisiones
+```
+
+P7: Miramos si la varianza de los errores es constante con el gráfico siguiente
+
+```{r}
+plot(fitted.values(modelo), rstandard(modelo), xlab='Valores ajustados',
+     ylab='Residuos estandarizados')
+abline(h=0) #dibujamos la recta en el 0
+```
+P8: Buscamos valores atípicos
+
+```{r}
+par(mfrow=c(1,1))
+plot(altpes$Altura,rstandard(modelo),xlab="Altura",
+     ylab="Residuos estandarizados")
+plot(altpes$Peso,rstandard(modelo),xlab="Peso",
+     ylab="Residuos estandarizados")
+
+```
+P9: Visualizamos la regresión lineal
+
+```{r}
+plot(altpes$Altura, altpes$Peso, xlab='Altura (cm)', ylab='Peso (kg)')
+abline(model)
+```
+P10: Utilizando regresión lineal, obtenemos el rendimiento que cabe
+esperar • (C) Estimad el peso que tendrá una mujer que pese 168 cm. Podemos 
+usar la función predict() o sustituir directamente en el modelo con parámetros
+estimados.
+
+```{r}
+
+```
+
+
+
+• (a) Determinad cuál es la variable dependiente y la variable independiente.
+• (b) Mirad si existe relación y ajustad la recta de regresión en caso
+afirmativo (utilizad todos los pasos usados en teoría).
+
+
+
+
+
+
+
+
+
