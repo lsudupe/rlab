@@ -4,4 +4,12 @@
 library(UsingR)
 a <- data.frame(bumpers)
 b <- data.frame(firstchi)
-c <- data.frame(match)
+c <- data.frame(math)
+
+par(mfrow=c(1,2))
+hist(bumpers, breaks=30, col='cadetblue3')
+plot(bumpers, col='dark red', xlab='Bumpers', ylab='value')
+
+par(mfrow=c(1,2))
+hist(firstchi, breaks=30, col='cadetblue3')
+plot(firstchi, col='dark red', xlab=)
