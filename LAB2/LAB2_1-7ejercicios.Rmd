@@ -4,3 +4,207 @@ author: "Laura Sudupe"
 date: "12/10/2020"
 output: html_document
 ---
+Ejercicio 1.En este ejercicio construimos las variables en nuestro script, 
+recodificamos variables no numéricas y buscamos resúmenes estadísticos y tablas
+de frecuencias de nuestras variables y datos:
+
+```{r}
+id=c(100,110,120,130,140,150,160,170,180,190)
+edad=c(18,19,NA,18,24,27,22,25,22,15)
+sexo=c(2,1,2,2,1,2,1,1,2,1)
+peso=c(65,58,56,61,84,99,50,64,87,87)
+altura=c(161,170,174,165,150,171,181,170,184,190)
+niv_col=c(1,2,3,1,3,2,3,1,2,3)
+
+tabla_datos = data.frame(id, edad, sexo, peso, altura, niv_col)
+
+sexo = factor(sexo, levels = c(1, 2), labels = c("Hombre", "Mujer"))
+niv_col = factor(niv_col, levels = c(1, 2, 3), 
+                 labels = c("Colesterol alto", "COlesterol normal",
+                            "Colesterol bajo"))
+tabla_datos_2 = data.frame(id, edad, sexo, peso, altura, niv_col)
+
+edad = summary(edad) #datos estadisticos
+edad_five_num = fivenum(edad) #5 numeros caracteristicos
+edad_mean = mean(edad)
+edad_var = var(edad)
+peso_altura_cor = cor(peso, altura) #correlacion entre dos variables
+edad_desviacion_estandar = sd(edad)
+```
+
+Ejercicio 2.Se quiere estudiar la posible asociación entre el hecho de que una 
+gestante fume durante el embarazo y que el bebé presente bajo peso al nacer. Se 
+realiza un estudio de seguimiento de 2.000 embarazadas. 
+
+```{r}
+Si = c(43, 105)
+No = c(207, 1645)
+tabla = data.frame(Si, No)
+rownames(tabla) <- c("Fumadora", "No fumadora")
+tabla
+#Test Chi-cuadrado para la asociacion entre las dos variables.
+Chi_test <- chisq.test(tabla)
+Chi_test
+#La conclusión es que hay una asociación significativa entre las variables 
+#(Chi2=38.42, gl = 1, p-value<0.05).
+```
+
+Ejercicio 3. Escogemos dos conjuntos de datos incorporados en los
+paquetes Datasets y MASS de R. Los data frame que queremos son Orange.
+(https://stat.ethz.ch/R-manual/R- atched/library/datasets/html/Orange.html)
+e Iris del que ya hemos hablado anteriormente.
+
+```{r}
+
+install.packages('datasets')
+#cargamos los paquetes
+library(datasets)
+data(package='datasets') #ambos dataframes estan en esta libreria, ORANGE e IRIS
+data('Orange') #vemos la data
+head(Orange)
+data('iris')
+head(iris)
+
+#. (a) Buscar un resumen de las variables de cada dataset.
+summary(Orange)
+summary(iris)
+
+summary_iris <- summary(iris)
+summary_iris
+
+#. (b) Generar una tabla de frecuencias absolutas y una de relativas con
+#cualquier variable del dataset.
+#frecuencia absoluta
+table(Orange$age) 
+table(iris$Sepal.Length)
+#frecuencia relativa
+prop.table(Orange$age)
+prop.table(iris$Sepal.Length)
+
+#. (c) Generar una tabla de frecuencias absolutas con cada una de las variables
+#del conjunto de datos Orange. ¿Todas las tablas generadas tienen sentido
+#para vosotros?
+table(Orange$Tree)
+table(Orange$age)
+table(Orange$circumference)
+#Con la frecuencia absoluta de three no obtenemos ningun dato concluyente
+```
+
+
+Ejercicio 4.En este ejercicio realizaremos paso a paso la creación de gráficos
+y modificación de sus opciones para que veáis cómo se pueden genera
+
+```{r}
+library(datasets)
+data('iris')
+head(iris)
+
+stem(iris$Sepal.Length) #grafico de tallo y hojas
+boxplot(iris$Petal.Width) #grafico de cajas
+hist(iris$Sepal.Length) #grafico de histogramas
+plot(iris$Sepal.Width) #grafico de puntos
+
+#modificaciones varias
+stem(iris$Sepal.Length, scale =1, width =80) 
+boxplot(iris$Petal.Width, col='tomato', title='Diagrama de caja')
+hist(iris$Sepal.Length, breaks=20, col='cadetblue3')
+plot(iris$Sepal.Width, col='dark red', xlab='SepalWidth', ylab='Y')
+```
+
+Ejercicio 5.
+
+```{r}
+#1.a) Incorporad el dataset VaDeaths de R y generad un gráfico barplot.
+library(datasets)
+data("VADeaths")
+head(VADeaths)
+barplot(VADeaths)
+
+#1.b) Usad la función pairs sobre el conjunto de datos iris.
+data("iris")
+head(iris)
+pairs(iris)
+
+#1.c) Generad unos datos inventados y cread un boxplot con ellos.
+x = rnorm(300)
+boxplot(x)
+
+#1.d) Dibujad una parábola y=x^2 con valores que van de x entre -10 y 10.
+x = seq(-10, 10)
+y = x^2
+plot(x, y, type='l', xlab='eje de las x', ylab='eje de las y', main='Parabola')
+plot(x, y, type='h', xlab='eje de las x', ylab='eje de las y', main='Parabola',
+     axes=F)
+plot(x, y, pch=18, col=2, type='b')
+```
+
+Ejercicio 6.
+
+```{r}
+#2.a)Cargad (o instalad primero y luego cargad) el paquete UsingR. El conjunto 
+#de datos brightness (incorporado en este paquete) contiene información sobre el
+#brillo de 963 estrellas.Representad estos datos mediante un histograma y un
+#gráfico de densidad superpuesto. Combinad los dos gráficos.
+install.packages("UsingR",repos = "http://cran.us.r-project.org")
+#install.packages('UsingR')
+library(UsingR)
+data(package='UsingR')
+data("brightness")
+Bright <- data.frame(brightness)
+hist(Bright, freq = F, main = 'Histograma', xlab='Brillo de las estrellas', 
+     ylab= 'Numero de estrellas')
+lines(density(Bright$brightness),lty=2, col='red')
+
+
+#2.b)Representad gráficamente estos datos mediante un diagrama de caja (boxplot)
+
+boxplot(brightness, data=Bright, main='Brillo de las estrellas',xlab='Porcentaje
+        de estrellas', ylab='Valores',col='tomato')
+
+#2.c)¿Diríais que los datos presentan «outliers»?
+#Si, hay varios datos alejados
+```
+
+Ejercicio 7.Representad gráficamente los datos contenidos en los
+conjuntos de datos (incorporados en UsingR) bumpers, firstchi, math 
+con un histograma y/o un boxplot usando ggplot2.
+
+```{r}
+library(UsingR)
+a <- data.frame(bumpers)
+b <- data.frame(firstchi)
+c <- data.frame(math)
+
+par(mfrow=c(1,2))
+hist(bumpers, breaks=30, col='cadetblue3')
+plot(bumpers, col='dark red', xlab='Bumpers', ylab='value')
+
+par(mfrow=c(1,2))
+hist(firstchi, breaks=30, col='cadetblue3')
+plot(firstchi, col='dark red', xlab='Firstchi', ylab='values')
+
+par(mfrow=c(1,2))
+hist(math, breaks=30, col = 'cadetblue3')
+plot(math, col='dark red', xlab='math', ylab='values')
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
