@@ -4,6 +4,8 @@
 #a) ¿Cuál es la media de edad, que definiremos como age_mean, de los pacientes 
 #de la muestra de datos?
 
+health_heart <- read.csv("/Users/lsudu/code/rlab/LAB2/PEC1/heart.csv")
+
 #primero voy a renombrar la columna 'ï..age'
 install.packages("tidyverse")
 library(plyr)
@@ -31,7 +33,7 @@ high_heart_attack_prob
 #de este data frame, definid un vector que contenga los valores máximos de las 
 #variables edad "age", colesterol "chol" y pulsaciones "thalach".
 
-heartAttack_chance_0 <- data.frame(health_heart, health_heart$target == "0")
+heartAttack_chance_0 <- subset(health_heart, health_heart$target == "0")
 heartAttack_chance_0
 vector <- c(max(heartAttack_chance_0$age), max(heartAttack_chance_0$chol),
             max(heartAttack_chance_0$thalach))
