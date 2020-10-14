@@ -2,7 +2,9 @@
 title: "Ejercicios LAB2 1-7"
 author: "Laura Sudupe"
 date: "12/10/2020"
-output: html_document
+output:
+  pdf_document: default
+  html_document: default
 ---
 Ejercicio 1.En este ejercicio construimos las variables en nuestro script, 
 recodificamos variables no numéricas y buscamos resúmenes estadísticos y tablas

@@ -12,6 +12,7 @@ de una persona a partir de su altura.
 P1: cargamos los datos, observamos el dataset y resumimos nuestras variables
 
 ```{r}
+library(readr)
 altpes <- read_delim('/Users/lsudu/code/rlab/LAB2/LAB2_Data/Altpes.csv',
                       ';', escape_double =FALSE, trim_ws=TRUE)
 head(altpes)
@@ -32,7 +33,7 @@ modelo lineal y estimamos los parámetros que tendrá.
 .
 
 ```{r}
-modelo <- lm(altpes$Altura~altpes$Peso, data=altpes)
+modelo <- lm(formula= altpes$Peso~altpes$Altura, data=altpes)
 summary(modelo)
 
 ```
@@ -52,7 +53,7 @@ cor.test(altpes$Altura, altpes$Peso, method='pearson')
 ```
 ```{r}
 #Otra manera de representarlo
-install.packages('PerformanceAnalytics')
+#install.packages('PerformanceAnalytics')
 library(PerformanceAnalytics)
 data <- data.frame(altpes$Altura, altpes$Peso)
 chart.Correlation(data)
@@ -62,8 +63,8 @@ P6: Miramos la normalidad, es decir, si los errores estandarizados
 siguen una distribución normal con 3 gráficos.
 
 ```{r}
-install.packages('AER')
-library(AER)
+#install.packages('AER')
+#library(AER)
 residuos<-rstandard(modelo) # residuos estándares del modelo ajustado (completo) 
 par(mfrow=c(1,3)) # divide la ventana en una fila y tres columnas 
 hist(residuos) # histograma de los residuos estandarizados 
@@ -83,33 +84,37 @@ abline(h=0) #dibujamos la recta en el 0
 P8: Buscamos valores atípicos
 
 ```{r}
-par(mfrow=c(1,1))
+par(mfrow=c(1,2))
 plot(altpes$Altura,rstandard(modelo),xlab="Altura",
      ylab="Residuos estandarizados")
+abline(h=0)
 plot(altpes$Peso,rstandard(modelo),xlab="Peso",
      ylab="Residuos estandarizados")
+abline(h=0)
 
 ```
 P9: Visualizamos la regresión lineal
 
 ```{r}
 plot(altpes$Altura, altpes$Peso, xlab='Altura (cm)', ylab='Peso (kg)')
-abline(model)
+abline(modelo) # no entiendo porque no me aparece la linea de tendencia
 ```
 P10: Utilizando regresión lineal, obtenemos el rendimiento que cabe
-esperar • (C) Estimad el peso que tendrá una mujer que pese 168 cm. Podemos 
+esperar • (C) Estimad el peso que tendrá una mujer que mida 168 cm. Podemos 
 usar la función predict() o sustituir directamente en el modelo con parámetros
 estimados.
 
 ```{r}
+#(Intercept)   -78.3168   
+#altpes$Altura   0.8733
 
+peso_m168 = -78.3168 + 0.8733*(168)
+peso_m168
 ```
 
 
 
 • (a) Determinad cuál es la variable dependiente y la variable independiente.
-• (b) Mirad si existe relación y ajustad la recta de regresión en caso
-afirmativo (utilizad todos los pasos usados en teoría).
 
 
 

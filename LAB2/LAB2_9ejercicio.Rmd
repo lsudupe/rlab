@@ -1,0 +1,43 @@
+---
+title: "Ejercicio 9 LAB2"
+author: "Laura Sudupe"
+date: "12/10/2020"
+output: html_document
+---
+
+A partir de unos datos bioclínicos o biosanitarios que escojáis y que importéis
+a R, explicad sus variables (un mínimo de 8) y:
+
+```{r}
+
+```
+
+
+• (a) Realizad un resumen estadístico completo del dataset y explicad los
+resultados.
+
+```{r}
+
+```
+
+
+• (b) Realizad 5 gráficos con las variables, explicad su significado y
+guardadlos como imágenes (jpeg o bmp).
+
+```{r}
+
+```
+
+
+
+• (c) Generad una regresión lineal entre 2 de sus variables paso a paso y
+comentad los resultados obtenidos.
+
+```{r}
+
+```
+
+
+
+
+
