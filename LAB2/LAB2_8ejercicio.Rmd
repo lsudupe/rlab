@@ -35,6 +35,9 @@ modelo lineal y estimamos los parámetros que tendrá.
 ```{r}
 modelo <- lm(formula= altpes$Peso~altpes$Altura, data=altpes)
 summary(modelo)
+modelo2 <- lm(formula= altpes$Altura~altpes$Peso, data=altpes)
+summary(modelo2)
+
 
 ```
 P4: Para ajustar la recta de regresión debemos mirar el valor estimado
@@ -96,8 +99,11 @@ abline(h=0)
 P9: Visualizamos la regresión lineal
 
 ```{r}
+par(mfrow=c(1,2))
 plot(altpes$Altura, altpes$Peso, xlab='Altura (cm)', ylab='Peso (kg)')
 abline(modelo) # no entiendo porque no me aparece la linea de tendencia
+plot(altpes$Peso, altpes$Altura, xlab='Peso (kg)', ylab='Altura (cm)')
+abline(modelo2)
 ```
 P10: Utilizando regresión lineal, obtenemos el rendimiento que cabe
 esperar • (C) Estimad el peso que tendrá una mujer que mida 168 cm. Podemos 
