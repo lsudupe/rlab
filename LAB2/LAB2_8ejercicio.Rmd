@@ -2,7 +2,9 @@
 title: "Ejercicio 8 LAB2"
 author: "Laura Sudupe"
 date: "12/10/2020"
-output: html_document
+output:
+  pdf_document: default
+  html_document: default
 ---
 
 Utilizad los datos Altpes.xls (adjuntos) relativos a la altura(cm) y el peso 
@@ -61,6 +63,8 @@ library(PerformanceAnalytics)
 data <- data.frame(altpes$Altura, altpes$Peso)
 chart.Correlation(data)
 ```
+Vemos que ambas variables son dependientes de la otra.
+
 
 P6: Miramos la normalidad, es decir, si los errores estandarizados
 siguen una distribución normal con 3 gráficos.
@@ -117,10 +121,6 @@ estimados.
 peso_m168 = -78.3168 + 0.8733*(168)
 peso_m168
 ```
-
-
-
-• (a) Determinad cuál es la variable dependiente y la variable independiente.
 
 
 
