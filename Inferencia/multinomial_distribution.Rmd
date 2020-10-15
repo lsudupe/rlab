@@ -1,0 +1,56 @@
+---
+title: "Multinomial distribution"
+author: "Laura Sudupe"
+date: "15/10/2020"
+output: pdf_document
+---
+
+El sistema de grupos sanguíneos ABO permite clasificar a las personas, según su 
+grupo sanguíneo, en cuatro grupos, mútuamente excluyentes, que denominamos A, B,
+AB y O. En una población las frecuencias de estos grupos son 0.46 (A), 0.075 (B)
+, 0.035 (AB) y 0.43 (O).
+
+Explica como puede utilizarse la distribución multinomial para modelizar la 
+extracción de muestras de tamaño “n” de esta población y contar el número de 
+individuos de cada grupo.
+
+"Generamos valores aleatorios de una distribución multinomial. Realizamos 10 
+experimentos, en cada experimento tenemos n=100 muestras. Las probabilidades son
+0.46 (A), 0.075 (B), 0.035 (AB) y 0.43 (O).
+```{r}
+#install.packages("combinat")
+#library(combinat)
+blood_groups <- rmultinom(10, 100, prob = c(0.46,0.075,0.035,0.43))
+
+df <- data.frame(blood_groups/100)
+
+par(mfrow=c(2,5))
+labels <- c("A", "B", "AB", "O")
+
+for(i in 1:10) {
+  barplot(df[,i], ylim = c(0,1), xlab = "A B AB O")
+}
+```
+
+"
+Supóngase que se analiza la sangre de 8 individuos. ¿Cuantos individuos 
+esperamos encontrar de cada grupo? En la misma muestra del caso anterior. 
+```{r}
+#Grupo A
+0.46*8
+#Grupo B
+0.075*8
+#Grupo AB
+0.035*8
+#Grupo O
+0.43*8
+```
+Espereamos encontrar entre 3 y 4 individuos del grupo A, entre 0 y 1 individuos 
+del grupo B, entre 0 y 1 individuos del grupo AB y entre 3 y 4 individuos del 
+grupo 0.
+
+¿Cual sería la probabilidad de obtener dos individuos de cada grupo?
+```{r}
+dmultinom(x=c(2,2,2,2), prob=c(0.46, 0.075, 0.035, 0.43))
+```
+La probabilidad de encontrar dos individuos de cada grupo es 0.068%
