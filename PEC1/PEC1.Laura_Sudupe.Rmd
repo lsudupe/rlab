@@ -197,7 +197,7 @@ qplot(x=age, y=chol, data=health_heart, geom="point")
 b) Realizar un gráfico de barras para las variables "age" y "trestbps".
 ```{r}
 ggplot(data = health_heart,  aes(x=age, y= trestbps)) +
-  labs(title= "Cholesterol vs age", x="Age", y="Cholesterol") +
+  labs(title= "Resting blood pressure vs age", x="Age", y="Pressure") +
   geom_col()
 ```
 
@@ -207,35 +207,46 @@ las siguientes cuestiones:
 a) Realizad un diagrama de cajas sobre las variables "age" y "thalach". ¿Qué se 
 puede extraer de este gráfico?
 ```{r}
-
+ggplot(data = health_heart,  aes(x=age, y= thalach, group=1)) +
+  labs(title= "maximum heart rate  vs age", x="Age", y="Max heart rate") +
+  geom_boxplot()
 ```
 
 b) Realizad un modelo de regresión para las dos variables anteriores y un 
 diagrama de puntos que ajuste al modelo anterior. ¿Qué conclusiones pueden 
 obtenerse?
 ```{r}
+modelo <- lm(health_data$thalach~health_data$age, data=health_data)
+summary(modelo)
+plot(health_data$age, health_data$thalach)
+abline(modelo)
 
 ```
+```{r}
+cor.test(health_data$age, health_data$thalach,
+                               method="pearson")
+```
+Podemos ver que si hay una tendencia, pero hay una correlación baja entre las
+variables
 
 c) Realizad la matriz de correlación del conjunto de datos health_heart. 
 ¿Qué se puede afirmar?
 ```{r}
-
+age <- c(health_data$age)
+thalach <- c(health_data$thalach)
+df <- data.frame(age, thalach)
+cor(df)
 ```
+Reafirmamos en la poca dependencia de una variable respecto a la otra.
 
-d) Calculad los residuos del modelo ajustado anterior y realizad un gráfico de
-normalidad.
+d) Calculad los residuos del modelo ajustado anterior y realizad un gráfico de normalidad.
 ```{r}
-
+summary(modelo)
+residuos <- rstandard(modelo)
+qqnorm(residuos)
 ```
 
-e) De los apartados anteriores, ¿qué se puede concluir? No existe correlación 
-directa entre las variables seleccionadas.
-```{r}
-
-```
-
-
+e) De los apartados anteriores, ¿qué se puede concluir? No existe correlación directa entre las variables seleccionadas.
 
 
 

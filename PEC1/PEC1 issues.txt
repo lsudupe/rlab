@@ -1,0 +1,4 @@
+Exercise 5.e) I have 3 graphics and i want to put in one row, for this, i used par(mfrow=c(1,3)) but it didn´t add the stem graphic
+Exercise 6.2.a) this plot gived me an error, if i add "grouo=1" the error disapear but i don`t understand why
+Exercise 6.2.d) i have to do a graph with the normalitation of the residues. I don´t understand this well.
+
