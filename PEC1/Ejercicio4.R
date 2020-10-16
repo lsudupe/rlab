@@ -3,9 +3,9 @@
 
 health_heart <- read.csv("/Users/lsudu/code/rlab/PEC1/heart.csv")
 head(health_heart) #observamos que columnas tenemos
-summary(health_heart) #
+summary(health_heart) #nos da un vistazo de la descripcion estadistica
 cor(health_heart) #vemos que dependencia tienen las variables entre si. Baja
-sapply(health_heart, mean) #echamos un vistazo a la media de todas las variables
+sapply(health_heart, mean) #echamos un vistazo a la media de todas las variables.
 
 #b) Definid un vector con la probabilidad de sufrir un ataque (target). 
 #Etiquetad la variable "target" con "Menor" si el valor es 0 y "Mayor" si el 

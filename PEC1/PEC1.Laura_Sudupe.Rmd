@@ -12,7 +12,7 @@ probabilidad de sufrir un ataque al corazón. Guarda estos datos en un data fram
 llamado health_heart y muestra los primeros y últimos registros del conjunto 
 de datos.
 ```{r}
-health_heart <- read.csv("/Users/lsudu/code/rlab/LAB2/PEC1/heart.csv")
+health_heart <- read.csv("/Users/lsudu/code/rlab/PEC1/heart.csv")
 head(health_heart)
 tail(health_heart)
 ```
@@ -46,7 +46,7 @@ dataHealthHeart_m, que corresponderán a los conjuntos de datos de las mujeres y
 de los hombres, respectivamente. Posteriormente, exportad ambos data frame a 
 dos ficheros (HealthHeart_w,HealthHeart_m) de tipo csv.
 ```{r}
-health_heart <- read.csv("/Users/lsudu/code/rlab/LAB2/PEC1/heart.csv")
+#health_heart <- read.csv("/Users/lsudu/code/rlab/LAB2/PEC1/heart.csv")
 health_heart$sex <- factor(health_heart$sex, levels=c("0","1"),
                        labels=c("male","female"))
 
@@ -56,10 +56,10 @@ dataHealthHeart_m <- data.frame(subset(health_heart,
                                 health_heart$sex == "male"))
 
 write.csv(dataHealthHeart_w, file=
-            "/Users/lsudu/code/rlab/LAB2/PEC1/HealthHeart_w.csv")
+            "/Users/lsudu/code/rlab/PEC1/HealthHeart_w.csv")
         
 write.csv(dataHealthHeart_m, file =
-            "/Users/lsudu/code/rlab/LAB2/PEC1/HealthHeart_m.csv")
+            "/Users/lsudu/code/rlab/PEC1/HealthHeart_m.csv")
 ```
 
 
@@ -69,10 +69,10 @@ cuestiones:
 a) ¿Cuál es la media de edad, que definiremos como age_mean, de los pacientes 
 de la muestra de datos?
 ```{r}
-health_heart <- read.csv("/Users/lsudu/code/rlab/LAB2/PEC1/heart.csv")
+#health_heart <- read.csv("/Users/lsudu/code/rlab/LAB2/PEC1/heart.csv")
 
 #primero voy a renombrar la columna 'ï..age'
-install.packages("tidyverse")
+#install.packages("tidyverse")
 library(plyr)
 health_heart <- rename(health_heart, c("ï..age" = "age" ))
 
@@ -117,11 +117,11 @@ EJERCICIO 4.
 a) Realizad un resumen estadístico de health_heart que muestre los parámetros
 básicos más importantes.
 ```{r}
-health_heart <- read.csv("/Users/lsudu/code/rlab/PEC1/heart.csv")
+health_heart_num <- read.csv("/Users/lsudu/code/rlab/PEC1/heart.csv")
 head(health_heart) #observamos que columnas tenemos
 summary(health_heart) #nos da un vistazo de la descripcion estadistica
-cor(health_heart) #vemos que dependencia tienen las variables entre si. Baja
-sapply(health_heart, mean) #echamos un vistazo a la media de todas las variables.
+cor(health_heart_num) #vemos que dependencia tienen las variables entre si. Baja
+sapply(health_heart_num, mean) #echamos un vistazo a la media de todas las variables.
 ```
 b) Definid un vector con la probabilidad de sufrir un ataque (target). 
 Etiquetad la variable "target" con “Menor” si el valor es 0 y “Mayor” si el 
@@ -147,7 +147,7 @@ la edad (age) y la probabilidad (target). Posteriormente representad una tabla
 de frecuencias relativas cruzadas, de manera que podamos visualizar cuántos/as
 pacientes según edad, tiene una probabilidad mayor o menor.
 ```{r}
-age_patient <- c(health_heart$ï..age)
+age_patient <- c(health_heart$age)
 target_patient <- c(health_heart$target)
 
 prop.table(table(age_patient, target_patient))
@@ -155,6 +155,37 @@ prop.table(table(age_patient, target_patient))
 
 
 EJERCICIO 5.
+Realizad los siguientes gráficos:
+a) Diagrama de tallo y hojas de la variable "age".
+```{r}
+stem(health_heart$age, scale=1, width=80)
+```
+
+
+b) Diagrama de cajas y bigotes de la variable "chol".
+```{r}
+boxplot(health_heart$chol, col="blue")
+```
+
+
+d) Diagrama de puntos de la variable "thalach" (frecuencia cardíaca máxima
+alcanzada).
+```{r}
+plot(health_heart$thalach, col="blue", xlab="Resting electro", ylab ="Y")
+```
+
+
+
+e) Combinad los gráficos anteriores en una representación gráfica común. Podéis
+utilizar la función layout() para ajustar la distribución de los gráficos si 
+fuera necesario.
+```{r}
+par(mfrow=c(1,3))
+boxplot(health_heart$chol, col="blue")
+stem(health_heart$age, scale=1, width=80)
+plot(health_heart$thalach, col="blue", xlab="Resting electro", ylab ="Y")
+```
+
 
 
 
