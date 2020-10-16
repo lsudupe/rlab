@@ -185,7 +185,55 @@ boxplot(health_heart$chol, col="blue")
 stem(health_heart$age, scale=1, width=80)
 plot(health_heart$thalach, col="blue", xlab="Resting electro", ylab ="Y")
 ```
+EJERCICIO 6.
+A partir del data frame "health_heart" se pide resolver las siguientes 
+cuestiones.
+6.1. Utilizando el paquete de gráficos ggplot2, se pide:
+a) Realizar un gráfico de tipo qplot de la variable "age" y la variable "chol".
+```{r}
+library(ggplot2)
+qplot(x=age, y=chol, data=health_heart, geom="point")
+```
+b) Realizar un gráfico de barras para las variables "age" y "trestbps".
+```{r}
+ggplot(data = health_heart,  aes(x=age, y= trestbps)) +
+  labs(title= "Cholesterol vs age", x="Age", y="Cholesterol") +
+  geom_col()
+```
 
+
+6.2. Realizad un breve estudio de regresión y correlación lineal, resolviendo 
+las siguientes cuestiones:
+a) Realizad un diagrama de cajas sobre las variables "age" y "thalach". ¿Qué se 
+puede extraer de este gráfico?
+```{r}
+
+```
+
+b) Realizad un modelo de regresión para las dos variables anteriores y un 
+diagrama de puntos que ajuste al modelo anterior. ¿Qué conclusiones pueden 
+obtenerse?
+```{r}
+
+```
+
+c) Realizad la matriz de correlación del conjunto de datos health_heart. 
+¿Qué se puede afirmar?
+```{r}
+
+```
+
+d) Calculad los residuos del modelo ajustado anterior y realizad un gráfico de
+normalidad.
+```{r}
+
+```
+
+e) De los apartados anteriores, ¿qué se puede concluir? No existe correlación 
+directa entre las variables seleccionadas.
+```{r}
+
+```
 
 
 
