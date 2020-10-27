@@ -2,7 +2,10 @@
 title: "PEC1"
 author: "Laura Sudupe"
 date: "13/10/2020"
-output: pdf_document
+output:
+  html_document:
+    df_print: paged
+  pdf_document: default
 ---
 EJERCICIO 1.
 Resuelve las siguientes cuestiones, mostrando las instrucciones de
@@ -48,7 +51,8 @@ dos ficheros (HealthHeart_w,HealthHeart_m) de tipo csv.
 ```{r}
 #health_heart <- read.csv("/Users/lsudu/code/rlab/LAB2/PEC1/heart.csv")
 health_heart$sex <- factor(health_heart$sex, levels=c("0","1"),
-                       labels=c("male","female"))
+                       labels=c("male","female")) 
+#Hice el ejercicio pensando que 0 se le asignaba al hombre y 1 a la mujer
 
 dataHealthHeart_w <- data.frame(subset(health_heart, 
                                        health_heart$sex == "female"))
@@ -78,11 +82,13 @@ health_heart <- rename(health_heart, c("ï..age" = "age" ))
 
 age_mean <- mean(health_heart$age)
 ```
+
 b) Definid una variable, age_max_trestbps, que guarde la edad del paciente que
 registra el máximo valor de presión arterial.
 ```{r}
 age_max_trestbps <- health_heart$age[max(health_heart$trestbps)]
 ```
+
 c) Mostrad los/as pacientes cuya probabilidad de tener un ataque al corazón 
 (target=0(menor probabilidad), target=1 (mayor probabilidad)) considerando 
 aquellos/as pacientes con presión arterial (trestbps) superior a la media.
@@ -124,6 +130,7 @@ cor(health_heart_num) #vemos que dependencia tienen las variables entre si. Baja
 sapply(health_heart_num, mean) #echamos un vistazo a la media de todas las variables.
 ```
 b) Definid un vector con la probabilidad de sufrir un ataque (target). 
+
 Etiquetad la variable "target" con “Menor” si el valor es 0 y “Mayor” si el 
 valor es 1.
 ```{r}
@@ -132,6 +139,7 @@ health_heart$target <- factor(health_heart$target, levels=c(0,1),
 prob_attack <- c(health_heart$target)
 
 ```
+
 c) Definid un vector con los niveles de colesterol (chol) de los/as pacientes, 
 después ordenad dicho vector, calculad la media, la varianza y desviación 
 estándar.
@@ -142,6 +150,7 @@ chol_patient_mean <- mean(chol_patient)
 chol_patient_var <- var(chol_patient)
 chol_patient_sd <- sd(chol_patient)
 ```
+
 d) Mostrad las tablas de frecuencias relativas y absolutas de los vectores de 
 la edad (age) y la probabilidad (target). Posteriormente representad una tabla
 de frecuencias relativas cruzadas, de manera que podamos visualizar cuántos/as
@@ -152,8 +161,6 @@ target_patient <- c(health_heart$target)
 
 prop.table(table(age_patient, target_patient))
 ```
-
-
 EJERCICIO 5.
 Realizad los siguientes gráficos:
 a) Diagrama de tallo y hojas de la variable "age".
@@ -164,14 +171,15 @@ stem(health_heart$age, scale=1, width=80)
 
 b) Diagrama de cajas y bigotes de la variable "chol".
 ```{r}
-boxplot(health_heart$chol, col="blue")
+boxplot(health_heart$chol,main = "Serum cholestoral in mg/dl",  col="blue")
 ```
 
 
 d) Diagrama de puntos de la variable "thalach" (frecuencia cardíaca máxima
 alcanzada).
 ```{r}
-plot(health_heart$thalach, col="blue", xlab="Resting electro", ylab ="Y")
+plot(health_heart$thalach, main= "Maximum heart rate",
+     col="blue", xlab="Resting electro", ylab ="Y")
 ```
 
 
@@ -181,9 +189,10 @@ utilizar la función layout() para ajustar la distribución de los gráficos si
 fuera necesario.
 ```{r}
 par(mfrow=c(1,3))
-boxplot(health_heart$chol, col="blue")
+boxplot(health_heart$chol,main = "Serum cholestoral in mg/dl", col="blue")
 stem(health_heart$age, scale=1, width=80)
-plot(health_heart$thalach, col="blue", xlab="Resting electro", ylab ="Y")
+plot(health_heart$thalach,main= "Maximum heart rate",
+     col="blue", xlab="Resting electro", ylab ="Y")
 ```
 EJERCICIO 6.
 A partir del data frame "health_heart" se pide resolver las siguientes 
@@ -192,7 +201,8 @@ cuestiones.
 a) Realizar un gráfico de tipo qplot de la variable "age" y la variable "chol".
 ```{r}
 library(ggplot2)
-qplot(x=age, y=chol, data=health_heart, geom="point")
+qplot(main = "Serum cholestoral vs age", 
+      x=age, y=chol, data=health_heart, geom="point")
 ```
 b) Realizar un gráfico de barras para las variables "age" y "trestbps".
 ```{r}
@@ -208,22 +218,26 @@ a) Realizad un diagrama de cajas sobre las variables "age" y "thalach". ¿Qué s
 puede extraer de este gráfico?
 ```{r}
 ggplot(data = health_heart,  aes(x=age, y= thalach, group=1)) +
-  labs(title= "maximum heart rate  vs age", x="Age", y="Max heart rate") +
+  labs(title= "Maximum heart rate  vs age", x="Age", y="Max heart rate") +
   geom_boxplot()
 ```
+El grueso de nuestros valores "heart rate" se encuentran entre 125 y 175. Tiene 
+una dispersión equilibrada. Vemos un valor extremo tambien en la parte baja de
+la grafica.
 
 b) Realizad un modelo de regresión para las dos variables anteriores y un 
 diagrama de puntos que ajuste al modelo anterior. ¿Qué conclusiones pueden 
 obtenerse?
 ```{r}
-modelo <- lm(health_data$thalach~health_data$age, data=health_data)
+modelo <- lm(health_heart$thalach~health_heart$age, data=health_heart)
 summary(modelo)
-plot(health_data$age, health_data$thalach)
+plot(health_heart$age, health_heart$thalach)
 abline(modelo)
 
 ```
 ```{r}
-cor.test(health_data$age, health_data$thalach,
+
+cor.test(health_heart$age, health_heart$thalach,
                                method="pearson")
 ```
 Podemos ver que si hay una tendencia, pero hay una correlación baja entre las
@@ -232,8 +246,8 @@ variables
 c) Realizad la matriz de correlación del conjunto de datos health_heart. 
 ¿Qué se puede afirmar?
 ```{r}
-age <- c(health_data$age)
-thalach <- c(health_data$thalach)
+age <- c(health_heart$age)
+thalach <- c(health_heart$thalach)
 df <- data.frame(age, thalach)
 cor(df)
 ```
@@ -246,7 +260,10 @@ residuos <- rstandard(modelo)
 qqnorm(residuos)
 ```
 
-e) De los apartados anteriores, ¿qué se puede concluir? No existe correlación directa entre las variables seleccionadas.
+
+
+e) De los apartados anteriores, ¿qué se puede concluir? 
+No existe correlación directa entre las variables seleccionadas.
 
 
 EJERCICIO 7.
@@ -281,7 +298,9 @@ Calculad la media del vector y las posiciones asociadas (del conjunto
 de datos "women") a los valores incluidos en el nuevo vector creado.
 ```{r}
 mean(heigth)
-plot(heigth)
+
+match(heigth, women$height) #para encontrar las posiciones asociadas
+
 ```
 
 EJERCICIO 8.
