@@ -47,7 +47,17 @@ Fibonacci. ¿A partir de qué valor de n, esta proporción se va
 aproximando a la Razón Aurea?
 
 ```{r}
+F_aurea <- function(n) {
+  valores <- F_fibonacci(n)
+  razon <- c(1)
+  for(i in 2:n) {
+    razon[i] <- valores[i]/ valores[i-1]
+  }
+  return(razon)
+}
 
+F_aurea(7)
+F_aurea(15)
 ```
 
 
