@@ -1,0 +1,53 @@
+---
+title: "Caso practico 1"
+author: "Laura Sudupe"
+date: "31/10/2020"
+output: html_document
+---
+
+Según las investigaciones de Mark E. Curtis, cada giro completo de la
+doble hélice del ADN mide 21 Å de ancho por 34 Å de largo. 34 y 21
+son dos números consecutivos en la sucesión de Fibonacci. Por lo tanto
+su cociente, 1.6190476, aproxima de cerca la Razón Aurea
+φ=1.6180339... (Fuente: http://www.sacred-geometry.es/?
+q=es/content/phi-en-la-estructura-del-adn )
+Se pide:
+
+a) Implementar en R una función que, dado un valor n, muestre los
+valores de la serie de Fibonacci hasta ese valor determinado.
+
+```{r}
+F_fibonacci <- function(x) {
+  v_fibonacci <- c(0, 1) #inicializamos vector
+  pos_ant <- 1 #posición anterior
+  i <- 2
+  for(i in i:(x-1)){
+    v_fibonacci[i+1] <- v_fibonacci[i] + v_fibonacci[i-1]
+  }
+  v_fibonacci <- v_fibonacci[1:length(v_fibonacci)]
+  return (v_fibonacci)
+}
+```
+
+
+b) ¿Para qué valores de n localizamos, en la serie de Fibonacci, las
+medidas de la doble hélice de la molécula de ADN?
+Estos valores los obtendremos ejecutando la función para n=9 y n=10:
+
+```{r}
+F_fibonacci(9)
+F_fibonacci(10)
+```
+
+c) Complementad el código del apartado a) añadiendo una nueva
+función (o las instrucciones que correspondan en la función creada
+anteriormente) de manera que, para un determinado valor n,
+muestre las proporciones sucesivas de los valores de la serie de
+Fibonacci. ¿A partir de qué valor de n, esta proporción se va
+aproximando a la Razón Aurea?
+
+```{r}
+
+```
+
+
