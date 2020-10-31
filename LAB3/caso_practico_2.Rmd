@@ -1,0 +1,52 @@
+---
+title: "caso_practico_2"
+author: "Laura Sudupe"
+date: "31/10/2020"
+output: html_document
+---
+
+La secuencia de ADN de un individuo contiene información genética de éste. 
+Actualmente, existen técnicas que permiten realizar esta secuenciación y aportar
+datos para investigar el comportamiento de diferentes tipos de organismos
+biológicos. (Fuente: https://es.wikipedia.org/wiki/Secuenciaci%C3%B3n_del_ADN).
+
+A continuación, generaremos una secuencia de ADN y calcularemos su
+inverso y complementario.
+
+```{r}
+#Generamos un dataframe que corresponda a una secuencia de ADN
+#Definimos el contenido via función
+fx <- function(a) {
+  x <- as.integer(runif(20, min=1, max=5))
+  #as.integer() para coercionar a integer
+  #runif() para general numeros racionales aleatorios
+  x[x==1] <-"A";x[x==2]<-"T";x[x==3]<-"G";x[x==4]<-"C"
+  paste(x, sep="", collapse="") #para nuestra secuencia
+}
+#Definimos un vector de secuencias
+z1 <- c()
+for(i in 1:50) {
+  z1 <- c(fx(i), z1)
+}
+
+#Definimos el dataframe
+z1 <- data.frame(ID=seq(along=z1), Seq=z1)
+#along() para que la secuencia tenga la misma longitud que el vecto
+
+#Visualizamos
+z1
+```
+Escribimos cada caracter de la secuencia en otro vector e invertimos
+su contenido, generando el complementario.
+
+```{r}
+my_split <- strsplit(as.character(z1[1,2]), "")
+my_rev <- rev(my_split[[1]])
+paste(my_rev, collapse = "")
+```
+Calculamos el contenido de cada caracter
+```{r}
+table(my_split[[1]])/length(my_split[[1]])
+```
+
+
