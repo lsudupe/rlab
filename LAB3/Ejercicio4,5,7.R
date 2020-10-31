@@ -37,3 +37,17 @@ bwt_c_edad
 #calculamos la media y el grafico
 mean(bwt_c_edad)
 plot(bwt_c_edad)
+
+
+#Ejercicio 7
+#Definid una función que calcule la media y otra función que realice la
+#representación gráfica de los datos propuestos en el enunciado.
+
+F_mean <- function(x) {
+  return (mean(x))
+}
+F_plot <- function(y) {
+  return (plot(y))
+}
+F_mean(bwt_c_edad) 
+F_plot(bwt_c_edad)
