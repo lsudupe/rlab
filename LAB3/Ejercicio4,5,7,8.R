@@ -51,3 +51,31 @@ F_plot <- function(y) {
 }
 F_mean(bwt_c_edad) 
 F_plot(bwt_c_edad)
+
+#Ejercicio 8
+#a) Mostrad la media del factor Ozone.
+library(sqldf)
+library(RSQLite)
+library(dplyr)
+
+db <- "RSQLite"::datasetsDb()
+dbListTables(db) #mostramos el conjunto de datos
+dbReadTable(db, "airquality") #accedemos al conjunto de datos
+colnames(airquality)
+sqldf("SELECT AVG(Ozone) FROM airquality")
+
+#b) Mostrad los datos de Ozone, Solar.R y Wind de los meses (Month) 5, 6 y 7.
+
+head(sqldf("SELECT Ozone, [Solar.R],
+           Wind FROM airquality where Month in (5,7)"))
+
+
+#c) Mostrad la información anterior ordenada por Month.
+
+head(sqldf("SELECT Ozone, [Solar.R],
+           Wind, Month FROM airquality where Month in (5,7) ORDER BY Month"))
+
+
+#d) Mostrad los datos de Wind, agrupados por Month.
+
+head(sqldf("SELECT Wind, Month FROM airquality GROUP BY Month"))
