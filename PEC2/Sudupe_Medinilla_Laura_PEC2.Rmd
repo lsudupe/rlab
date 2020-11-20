@@ -196,6 +196,37 @@ library(Rcmdr)
 ```
 
 
+EJERCICIO 4. Simulación en distribuciones de probabilidad
+
+Según un estudio realizado, la probabilidad de que un portador de una 
+determinada enfermedad altamente contagiosa la transmita a otras personas es de 
+un 30%.
+
+a) ¿De qué tipo de distribución se trata?
+```{r}
+Una distribución binomial
+```
+
+b) Utilizando Rstudio y/o Rcommander, generad 10000 valores aleatorios
+suponiendo que para cada 10 personas observadas, hay una probabilidad de 0.3
+de que éstas sean contagiadas.
+```{r}
+set.seed(9991)
+muestra_b <- sample(c(1,0),1000,rep=T,prob=c(0.3,0.7))
+head(muestra_b)
+```
+
+c) Representad en un histograma la anterior distribución.
+```{r}
+
+```
+
+
+d) Repetid los apartados a) y b) para los casos correspondientes a 5, 100 y 1000
+personas utilizando la funcion replicate(). ¿Qué podéis observar?
+```{r}
+
+```
 
 
 
