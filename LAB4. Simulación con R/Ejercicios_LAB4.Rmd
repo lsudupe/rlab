@@ -1,0 +1,459 @@
+---
+title: "LAB4"
+author: "Laura Sudupe"
+date: "9/11/2020"
+output: html_document
+---
+
+EJERCICIO 1.
+a) Si X es una v.a. con distribución normal de media 3,5 y desviación típica 0,5
+¿cuál es la probabilidad de que X sea menor que 4?
+```{r}
+#probabilidad de que X sea 4 o menos
+prop_norm <- pnorm(4, mean=3.5, sd=0.5, lower.tail = TRUE)
+#prob de que sea 4
+prob_norm_4 <- dnorm(4, mean=3.5, sd=0.5)
+#probabilidad x <4
+prob_menos_4 <- prop_norm -prob_norm_4
+
+
+```
+
+b) Generad una muestra de tamaño 100 para una población normal de
+media 10 y desviación típica igual a 1. Guardad el resultado en un vector
+llamado v.
+```{r}
+muestra <- rnorm(100, mean=10, sd=1)
+summary(muestra)
+
+muestr <- c(rnorm(100, mean=10, sd=1))
+summary(muestr)
+```
+
+c) Comprobad que la muestra tenga una media y una desviación típica
+aproximada a la del enunciado del apartado anterior.
+d) Comprobad con un gráfico que esta muestra tenga una distribución
+normal.
+```{r}
+hist(muestra, freq = FALSE, main= "Grafico muestra")
+curve(dnorm(x, mean = 10, sd =1), from = 6.5, to = 13, add =TRUE)
+```
+
+EJERCICIO 2.
+Generad 200 observaciones de una distribución binomial,B(1, 0.5) y guardadlo
+en un vector llamado «bino».
+```{r}
+set.seed(9991)
+bino <- rbinom(200,1,0.5)
+summary(bino)
+
+```
+
+
+Calculad las frecuencias absolutas y relativas de los valores generados en el vector anterior. ¿Qué observáis con el resultado que habéis obtenido?
+```{r}
+freq <- table(bino)
+prop.table(freq)
+
+
+```
+EJERCICIO Distribución binomial.
+a) Calcular la probabilidad de obtener cuatro caras al lanzar seis veces una moneda perfecta.
+```{r}
+dbinom(x=4, size=6, prob=0.5)
+```
+
+b) Calcular la probabilidad de obtener como mucho cuatro caras al lanzar seis veces una moneda perfecta.
+```{r}
+pbinom(4,6,0.5)
+```
+
+c) Generar 10 valores seudoaleatorios de una B(6,0.5).
+```{r}
+rbinom(10,6,0.5)
+```
+
+EJERCICIO Distribución Poisson.
+Supongamos que estamos en una fábrica de telas que realiza un número de telas 
+por minuto y que sigue una distribución de Poisson con parámetro ʎ = 0.5.
+Determinar:
+a) La probabilidad de que, en un minuto al azar, se genere una única tela.
+```{r}
+dpois(c(1), 0.5)
+```
+
+b) La probabilidad de que, en un minuto al azar, se generen un máximo de 3 telas.
+```{r}
+ppois(c(3), 0.5)
+```
+
+c) La probabilidad de que se generen cinco telas en 4 minutos.
+```{r}
+dpois(c(5), 2)
+```
+
+EJERCICIO Distribución normal.
+a) Generar una muestra de tamaño 1000 de una distribución normal
+N(3,2).
+```{r}
+set.seed(9991)
+normal <- rnorm(1000, mean = 3, 2)
+summary(normal)
+```
+
+b) Crear el histograma de la muestra.
+```{r}
+hist(normal, freq = F)
+curve(dnorm(x, 5, 3), -4, 10, add =T)
+```
+
+
+EJERCICIO 3.
+La teoría nos dice que si X1 y X2 son variables independientes que siguen una
+distribución normal, la suma de las dos variables también será una distribución
+normal. Para comprobarlo, deberemos simular dos muestras de X1 y X2 de
+tamaño 100000 y sumarlas para ver si la función de densidad de la distribución
+conjunta de su suma también sigue una distribución normal. Las características
+de cada variable son: x1~N(6, 0.5) y x2~N(3, 0.6)
+
+```{r}
+muestra1 <- rnorm(100000, mean=6, sd=0.5)
+muestra2 <- rnorm(100000, mean=3, sd=0.6)
+par(mfrow=c(1,3))
+plot(density(muestra1), col="red", main="Grafico densidad muestra 1", xlab= "",
+     ylab="", lwd=5)
+plot(density(muestra2), col="red", main="Grafico densidad muestra 2", xlab= "",
+     ylab="", lwd=5)
+
+
+suma <- muestra1 + muestra2
+#grafico de densidad de la suma de las variables simuladas
+{plot(density(suma), col= 'tan', main="Suma de las muestras", xlab= "", ylab= "",
+     lwd=10)
+#para añadirle la leyenda
+legend("topright", c("Muestra de la suma", "Suma teorica"), col=c("tan", "red")
+       , lwd=c(10, 5))
+
+curve(dnorm(x, mean=9, sd = sqrt(0.25+0.36)), from= -1, to= 5, add = TRUE,
+      100000, col="red", lwd=5)}
+
+
+
+```
+
+EJERCICIO 4. Simulación Montecarlo
+Echamos al aire una moneda 10 veces y queremos saber la probabilidad de que 
+salga cara mas de 3 veces. Podemos hacerlo con el metodo Montecarlo. Simulamos 
+10 lanzamientos 100,000 veces y vemos cuantas veces pasa.
+```{r}
+tandas <- 100000
+
+#una_tanda simula una ronda de 10 veces y retorna true si el numero de caras
+#es mayor que 3. Cruz=0, cara=1.
+
+una_tanda <- function(){
+  sum(sample(c(0,1),10,replace=T)) > 3
+}
+
+#ahora repetimos la ronda un numero "tandas" de veces
+mc.binom <- sum(replicate(tandas, una_tanda()))/tandas
+
+#comparamos con lo obtenido con la funcion de distribución binomial
+distr_bi <- pbinom(3,10,0.5,lower.tail=FALSE)
+```
+
+EJERCICIO 5.
+a) Simulación del lanzamiento de un dado.
+```{r}
+#lanzamos un dado de 6 caras, cada vez obtenemos un valor distinto
+sample(1:6,1)
+```
+
+b) Simulación de lanzamiento de 5 dados o de un mismo dado 5 veces con
+remplazo.
+```{r}
+sample(1:6,5, replace=T)
+```
+
+c) Simulación de la distribución de la suma del lanzamiento de 5 dados.
+```{r}
+#simulamos una muestra de 1000 con la funcion sapply y escribimos una semilla 
+#de aletorización.
+set.seed(9991)
+t <- sapply(1:10000, function(x){
+  sum(sample(1:6,5,rep=T))
+})
+#tabulamos el vector t con la muestra
+tt <- table(t)
+
+barplot(tt)
+
+```
+Observamos que la suma de tamaño muestral 1000 genera una distribución normal
+
+
+EJERCICIO 6.
+Disponemos de una urna con veinte bolas. Trece de estas bolas son azules y siete
+son rojas. Asignaremos el valor 1 a las bolas azules y el 0 a las rojas:
+
+a) Calculamos la probabilidad de extracción de cada tipo de bola.
+```{r}
+prob_azul <- 13/20
+prob_rojo <- 7/20
+```
+
+b) Simulación de la extracción de una bola.
+```{r}
+sample(c(1,0), 1, prob = c(0.65,0.35))
+```
+
+c) Simulación de 9 extracciones con remplazamiento.
+```{r}
+sample(c(1,0), 9, rep=T, prob=c(0.65,0.35))
+```
+EJERCICIO Ejemplo replicate()
+Imaginamos un juego en el que tiramos un dado 5 veces en cada partida y
+queremos simular 8 partidas del juego y ver partidas ganadoras. Las partidas
+ganadoras serán aquellas que tengan un 6 en alguna de las tiradas del dado.
+```{r}
+#semilla de aleatorización
+set.seed(9991)
+
+#generamos la partida
+partida <- sample(1:6, size=5, replace=T)
+
+#simulamos las 8 partidas
+numRep <- 8
+repeticiones <- replicate(n=numRep, {partida})
+#replicate() noss genera una matriz, las columnas son los lanzamientos
+#del dado y las filas la partida
+repeticiones
+repeticiones ==6 #para ver las partidas ganadoras
+
+#para verificar que tipo de dato es
+class(repeticiones)
+
+#para ver las dimensiones de la matriz
+dim(repeticiones)
+
+
+
+
+
+```
+
+EJERCICIO Ejemplo combinación y permutación
+Tenemos un bol con 3 tipos de manzanas (golden, fuji, gala). Si cogemos 2
+manzanas con repetición hay 32 permutaciones que serán {golden, golden},
+{golden, fuji}, {fuji, fuji}, {fuji, golden}, {golden, gala}, {gala, gala},
+{gala, fuji}, {gala, golden} y {fuji, gala}. Vamos a ver qué pasa:
+
+```{r}
+#install.packages("gtools")
+#descargamos la libreria que necesitamos
+library(gtools)
+
+#creamos el vector con los 3 tipos de manzana
+manzanas_vector <- c("golden", "fuji", "gala")
+
+#obtenemos las permutaciones
+permutaciones <- permutations( n=3, r=2, v=manzanas_vector, repeats.allowed = T)
+
+#calculamos numero de permutaciones
+nrow(permutaciones)
+
+#si no generamos repeticione, no tendremos 9 conjuntos, solo 6 permutaciones 
+#diferentes. Pero no todas las permutaciones posibles
+```
+
+EJERCICIO 7. 
+1. Generar un código para calcular la distribución de la suma de los 4 
+resultados de tirar un dado usando distribución uniforme.
+```{r}
+cuatrodados <- round(runif(4,1,6),0)
+
+#calculamos la distribución de la suma de los 4 resultados
+distribucion <- sapply(1:10000,
+                       function(x){sum(cuatrodados)})
+
+#grafico
+hist(distribucion, freq=FALSE)
+```
+
+
+2. Generar una función para calcular el número de tarjetas doradas que
+salen en una extracción de 12 tarjetas con reemplazo en una binomial con
+n = 12 y p = 10/40. Repetir el experimento 10.000 veces.
+```{r}
+#generamos la distribución binomial de la partida
+tarjetas_binom <- rbinom(1, 12,10/40)
+
+#generamos la repetici´on
+rbinom(10000,12,10/40)
+
+#hacemos lo mismo con la función replicate()
+replicate(10000, tarjetas_binom)
+
+
+
+```
+
+
+3. Considerar el efecto de sumar dos distribuciones normales, una de
+media = 3 y desviación estándar = 2 y otra con media = 5 y desviación
+estándar = 3.
+```{r}
+
+#generamos las distribuciónes
+dist_1 <- rnorm(1000,3,2)
+dist_2 <- rnorm(1000,5, 3)
+
+sum <- dist_1 + dist_2
+{hist(sum, freq = F)
+  curve(dnorm(x,3,2), add=T, col="green")
+  curve(dnorm(x,5,3), add=T, col="blue")
+}
+
+```
+
+EJERCICIO 8. R-COMMANDER
+Dada una distribución N(μ,σ2) ~ N(20,9)
+
+library("Rcmdr") #inicializamos R commander
+
+a) Calcular los cuartiles (0.25,0.5,0.75)
+Rcmdr>  qnorm(c(0.25,0.5,0.75), mean=20, sd=3, lower.tail=FALSE)
+[1] q1=22.02347 q2=20.00000 q3=17.97653
+
+b) Calcular la probabilidad P[X >= 8]
+pnorm(c(8), mean=20, sd=3, lower.tail=FALSE) +  dnorm(8, mean=20, sd=3)
+
+c) Representar la función de densidad_
+
+d) en el que se pida generar una muestra de tamaño n=100 con la
+distribución normal~ N(20,9)
+Rcmdr> .x <- seq(10.128, 29.872, length.out=1000)
+
+
+EJERCICIO 9.
+Resolved los siguientes ejercicios utilizando Rstudio y RCommander y
+comentad los resultados obtenidos:
+
+(a) Se ha realizado un estudio a partir del cual se sabe que un determinado
+fármaco reduce los efectos de la alergia al polen. Con los datos obtenidos
+hasta el momento, solo en el 4 % de los casos no ha surgido efecto.
+
+– ¿Qué tipo de distribución representa este caso?
+```{r}
+#presenta una distribución binomial, esta formada por un nº predeterminado de n
+#experimentos iguales independientes entre si. El resultado de cada experimento 
+#admite solo dos categorias
+```
+
+– ¿Cuál es la probabilidad de que si se realiza la técnica 100 veces haya más
+de 5 casos en los que el fármaco no sea efectivo?
+```{r}
+pbinom(c(5),100,0.04)
+```
+
+- Representad en un diagrama de puntos la distribución que represente la
+probabilidad de que, si se realiza la técnica 80 casos, haya exactamente 4
+rechazos.
+```{r}
+dbinom(0:4,80,0.04)
+
+#representamos la distribución
+par(mfrow=c(1,2))
+plot(dbinom(0:4,80,0.04),xlab = "Rechazo fármaco polen")
+```
+
+
+(b) La duración media de recuperación de una gripe común es de 7 ± 2 días
+(media y desviación estándar). Suponiendo que se trata de una
+distribución normal, calculad la probabilidad de que la recuperación dure
+entre 6 y 10 días.
+```{r}
+pnorm(10,7,2)-pnorm(6,7,2)
+```
+
+EJERCICIO FINAL ACUMULATIVO.
+En este ejercicio estudiaremos la distribución de unos datos unidimensionales.
+Los datos que usaremos son el dataset Faithful incorporado en las librerías de R.
+Este dataset nos da información sobre el tiempo de espera entre erupciones y la
+duración de la erupción del Géiser Old Faithful en el Parque Nacional de
+
+Yellowstone, Wyoming, Estados Unidos (https://stat.ethz.ch/R-
+manual/Rdevel/library/datasets/html/faithful.html).
+
+a) Realizad un estudio estadístico descriptivo de la variable eruptions y
+generad el gráfico de tallo y hojas.
+```{r}
+library(MASS)
+data("faithful")
+attach(faithful)
+
+#El resumen estadistico
+summary(eruptions)
+#o
+fivenum(eruptions)
+names(faithful)
+stem(eruptions)
+
+```
+
+
+b) Generad el histograma. Definid intervalos menores en el histograma y
+añadid al gráfico la función de densidad superpuesta.
+```{r}
+hist(eruptions)
+
+#definimos intervalor menores y añadimos un grafco de densidad
+hist(eruptions, seq(1.6, 5.2, 0.2), prob=TRUE)
+lines(density(eruptions, bw=0.1))
+rug(eruptions) #para ver la localización exacta de los puntos
+
+```
+
+
+c) Usando la función ecdf de la biblioteca estándar stepfun, representad la
+función de distribución empírica de la muestra, es decir, una distribución a
+partir de estos datos que proporcione un cierto parecido a una distribución
+verdadera asociada con la población.
+
+```{r}
+library(tidyverse)
+plot(ecdf(eruptions), do.points=FALSE, verticals=TRUE)
+```
+
+d) ¿Creéis que la distribución del apartado anterior corresponde a alguna
+distribución estándar conocida?
+
+```{r}
+#A una distribución estándar conocida no. Podemos decir que es una distribución
+#acumulada y quizás una bimodal.
+```
+
+e) Seleccionad las erupciones que duran más de 3 minutos. ¿Qué podéis
+decir de estos datos? ¿Creéis que se parecen a alguna distribución?
+
+```{r}
+long<-eruptions [eruptions >3]
+plot(ecdf(long), do.points=FALSE, verticals=TRUE)
+
+x<-seq(3, 5.4, 0.01)
+lines(x, pnorm(x, mean=mean(long), sd=sqrt(var(long))), lty=3)
+
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
