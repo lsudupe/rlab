@@ -1,0 +1,230 @@
+---
+title: "PEC2 Software para el análisis de datos"
+author: "Laura Sudupe"
+date: "17/11/2020"
+output: html_document
+---
+
+Sección 1. Programación con R
+
+EJERCICIO 1. Cuestiones de programación en R sobre el paquete de datos
+Airquality
+
+```{r}
+library(datasets)
+data("airquality")
+head(airquality)
+df <- data.frame(airquality)
+```
+a) (0,6 puntos) La variable Wind representa la media de la velocidad del viento 
+en unidades mph definida en diferentes momentos. Definid una función en R que
+devuelva la media de todos los valores registrados a la variable Wind y devuelva
+dicho valor.
+```{r}
+F_wind_mean <- function(x) {
+  a <- mean(df$Wind, na.rm=FALSE)
+  return(a)
+  }
+
+wind_mean <- F_wind_mean()
+```
+
+b) (0,6 puntos) La variable Temp representa la temperatura máxima en grados
+Farenheit en diferentes momentos. Definid una función en R que transforme los
+valores de la variable Temp de grado Farenheit a grados Celsius, teniendo en
+cuenta que: t (oC) = t (oF) -32/1,8.
+
+```{r}
+#definimos la funcion del cambio de temp
+F_temp <- function(x){
+  celcius <- (x - 32)/1.8
+  return(celcius)
+}
+
+Temp_C <- sapply(df$Temp, F_temp)
+
+```
+
+c) (0,6 puntos) Definid una función que recorra todos los registros del 
+dataframe airquality y asigne un valor 0 a todos las variables que tengan un 
+valor NA.
+```{r}
+F_no_NA <- function(x){
+  x[is.na(x)] <- 0
+  return(x)
+}
+
+df_no_NA <- F_no_NA(df)
+```
+
+d) (0,6 puntos) Definid una función que, dado un valor numérico que corresponda
+a un mes determinado de la variable Month, muestre los valores de todas las
+temperaturas de la variable Temp que se han registrado ese mes.
+```{r}
+F_temp_in_month <- function(num){
+  a <- subset(df$Temp, df$Month == num)
+  return(a)
+}
+temp_month_five <- F_temp_in_month(5)
+temp_month_five
+  
+```
+
+e) (0,6 puntos) Definid una función que muestre cuántas veces se han producido
+unos valores iguales o superiores a determinados de ozono y otro de radiación
+solar definidos por el usuario. Por ejemplo, ¿cuántas veces se ha producido un
+ozono mayor que 50 ppb, siendo una radiación igual o mayor a 200 lang?
+```{r}
+count <- 0
+F_ozone_radiation <- function(x, y){
+  a <- subset(df, df$Ozone == x | df$Solar.R == y)
+  b <- length(a)
+  return(b)
+}
+condition_1 <- F_ozone_radiation(50, 200)
+condition_1
+``` 
+
+EJERCICIO 2. Cuestiones de programación en R sobre secuencias de ADN aleatorias.
+```{r}
+#Vamos a crear una secuencia de ARN con las siguientes bases; A, G, U.
+
+set.seed(9991)
+base <- c("A", "G", "U")
+longitud_seq <- 1000
+n <- 1
+secuencia <- replicate(n, paste0(sample(base,longitud_seq,replace = T), 
+                                 collapse = ""))
+secuencia
+#Establecemos codones de stop y haremos un recuento de cuantas veces se repiten
+codonesSTOP <- c("UAA", "UAG", "UGA")
+
+library(stringr)
+F_stop_codon <- function(secuence){
+  count <- str_count(secuence, codonesSTOP)
+  return(count)
+}
+
+stop_codons_secuence <- F_stop_codon(secuencia)
+stop_codons_secuence
+
+#obtenemos el numero de veces que aparece cada codon de parada
+```
+
+
+
+
+Sección 2. Distribuciones de probabilidad y simulación
+
+EJERCICIO 3. Resolved los siguientes ejercicios utilizando Rstudio y Rcommander 
+y comentar los resultados obtenidos.
+
+(a) La probabilidad de que, después de poner una determinada vacuna, una persona
+contraiga una determinada enfermedad contagiosa es del 4%.
+
+• ¿Qué tipo de distribución representa este caso?
+Una distribución binomial. Tenemos dos resultados, que contraiga o no 
+contraiga la enfermedad. En este caso, la probabilidad de que ocurra es 
+constante y el resultado en cada prueba es independiente de los obtenidos 
+anteriormente
+
+• ¿Cuál es la probabilidad de que si se realiza la técnica 100 veces haya más de
+5 casos en los que la vacuna no sea efectiva?
+```{r}
+prop_b <- 1 - pbinom(5,100,0.04, lower.tail = T)
+prop_b
+
+```
+
+• Representad en un diagrama de puntos la distribución que represente la
+probabilidad de que si se realiza la técnica a 80 casos, haya exactamente 4
+contagios.
+```{r}
+par(mfrow=c(1,2))
+prop_c <- dbinom(0:4,80,0.04)
+prop_c
+plot(prop_c, xlab="Distribución contagios")
+```
+
+
+(b) En general, la recuperación de una determinada intervención de varices es de
+aproximadamente 14 días de media, con una desviación estándar de 4 días. Si
+consideramos que estamos trabajando con una distribución normal, calcula la
+probabilidad de que dicha recuperación esté comprendida entre 12 y 16 días.
+
+Calculamos la probabilidad como la resta entre la probabilidad de que dure 16 
+dias y la probabilidad de que dure 12 dias. Lo haremos con R-commander.
+
+library(Rcmdr)
+Rcmdr> pnorm(c(16), mean=14, sd=4, lower.tail=TRUE)
+[1] 0.6914625
+Rcmdr>  pnorm(c(12), mean=14, sd=4, lower.tail=TRUE)
+[1] 0.3085375
+
+```{r}
+#Ahora realizamos la resta de ambos
+prop_d <- (0.6914625-0.3085375)
+prop_d
+
+```
+
+(c) Los pacientes de una determinada ciudad tiene la posibilidad de realizar 
+consultas a su médico de familia, a través de un portal web. Según los datos 
+disponibles, mensualmente acceden una media de 1176 personas. Responde a las 
+siguientes cuestiones:
+
+• ¿Qué tipo de distribución representa este caso?
+
+Una distribución de Poisson. Es una distribución de probabilidad discreta que expresa una frecuencia de ocurrencia media. Nos da la probabilidad de que ocurra un determinado número de eventos durante cierto periodo de tiempo.
+
+• ¿Cuál es la probabilidad de qué, en un determinado mes, haya una media de
+1200 accesos?
+```{r}
+prob_e <- dpois(c(0:1200),1176)
+prob_e
+
+#NO ESTOY SEGURA DE LAMDA
+```
+
+• Representad en un diagrama de puntos el apartado anterior.
+```{r}
+plot(prob_e)
+library(Rcmdr)
+```
+```{r}
+library(Rcmdr)
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

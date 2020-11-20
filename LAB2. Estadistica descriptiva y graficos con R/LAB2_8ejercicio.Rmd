@@ -105,7 +105,7 @@ P9: Visualizamos la regresión lineal
 ```{r}
 par(mfrow=c(1,2))
 plot(altpes$Altura, altpes$Peso, xlab='Altura (cm)', ylab='Peso (kg)')
-abline(modelo) # no entiendo porque no me aparece la linea de tendencia
+abline(modelo) 
 plot(altpes$Peso, altpes$Altura, xlab='Peso (kg)', ylab='Altura (cm)')
 abline(modelo2)
 ```

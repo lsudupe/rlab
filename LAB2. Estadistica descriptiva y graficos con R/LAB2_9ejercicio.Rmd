@@ -2,7 +2,9 @@
 title: "Ejercicio 9 LAB2"
 author: "Laura Sudupe"
 date: "12/10/2020"
-output: html_document
+output:
+  pdf_document: default
+  html_document: default
 ---
 
 A partir de unos datos bioclínicos o biosanitarios que escojáis y que importéis
@@ -59,7 +61,8 @@ plot(health_data$sex , health_data$age)
   
 ```
 ```{r}
-plot(health_data$age, health_data$thalach,main = "Heart rate vs age", xlab="age", ylab="max heart rate")
+plot(health_data$age, health_data$thalach,main = "Heart rate vs age",
+     xlab="age", ylab="max heart rate")
 ```
 ```{r}
 plot(health_data$sex, health_data$chol, main="cholesterol mg / dl vs sex", 
@@ -86,7 +89,7 @@ Vemos que no hay mucha relacion entre la edad y la pression de la sangre en
 descanso. Pero si hay una correlación
 
 ```{r}
-model <- lm(formula = health_data$age~health_data$trestbps, data=health_data)
+model <- lm(formula= health_data$age~health_data$trestbps, data=health_data)
 summary(model)
 plot(health_data$age, health_data$trestbps, xlab="age",
      ylab="resting blood pressure")

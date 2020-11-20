@@ -1,0 +1,137 @@
+---
+title: "PEC1 Inferencia Estadistica"
+author: "Laura Sudupe"
+date: "16/11/2020"
+output: pdf_document
+---
+
+EJERCICIO 2.
+Según La revista científica The Lancet que ha publicado un extenso estudio sobre 
+los efectos que la distancia interpersonal, el uso de mascarillas y otros medios
+de protección contra el coronavirus se describe que la Probabilidad de 
+transmisión del coronavirus en personas que no usan la mascarilla es del 17.8% y
+en el caso  que la usen de del 3.1%
+
+a) ¿Si el 40% de la población no lleva mascarilla? , cual es la probabilidad de
+infectarse.
+```{r}
+p_a <- (40 * 17.8)/100
+p_a
+```
+b) ¿Si uno de los pacientes resulta infectado , cual es la probabilidad que sea 
+de los que no llevaba mascarilla?
+Si 15 sujetos acuden a una fiesta nocturna sin mascarilla
+```{r}
+p_b <- dbinom(1,15,0.178)
+p_b
+```
+
+
+c) ¿Cuál es la probabilidad de que se contagien exactamente 5 ?
+```{r}
+p_c <- pbinom(5,15,0.178)
+p_c
+```
+d) ¿Cual es la probabilidad de que se contagien más de 5 pacientes?
+
+Genera 1000 muestras aleatorias de 15 pacientes utilizan mascariilla y calcula 
+el intervalo de confianza al 95%.
+
+- Puedes simular los valores observados con el código siguiente para poder 
+replicar los resultados si los ejecutas varias veces, ya que si no fijas la 
+semilla(seed) cada vez que ejecutes los comandos te dará un resultado
+diferente
+
+- set.seed (unnumero) #cambia “unnumero” por un número para que siempre genere 
+la misma muestra
+
+- rbinom(n, size, prob) # genera n muestras de tamaño “size” con una 
+probabilidad de éxito "prob
+
+```{r}
+p_d <- 1-pbinom(4,15,0.178, lower.tail = T)
+p_d
+
+#generamos las muestras aleatorias
+
+set.seed(9991)
+muestra <- rbinom(1000,15,0.031)
+
+#calcular intervalo de confianza al 95%
+
+
+```
+
+
+e) Cuantos intervalos esperas que contengan y cuantos verdaderamente contienen
+el verdadero % de transmisión de coronavirus
+```{r}
+
+```
+
+
+f) Dibuja un histograma con los valores observados y superpón la curva normal
+teórica que se esperaría según el teorema central del límite.
+```{r}
+
+```
+
+g) Si en lugar de ser la muestra de 11 fuera de 150 que esperarias que ocurri-
+era con respecto a los apartados anteriores ( no es necesario que presentes los
+cálculos)
+```{r}
+
+```
+
+
+
+
+EJERCICIO 3.
+El colesterol sérico es un factor de riesgo importante de enfermedad coronaria. 
+Se puede demostrar que el colesterol sérico sigue un a distribución normal , con
+media = μ = 219mg / dL y desviación estándar = σ = 50mg / dL.
+
+
+a) Si el rango clínicamente deseable para el colesterol es <200 mg / dL, ¿qué
+proporción de personas tienen clínicamente niveles deseables de colesterol?
+```{r}
+
+```
+
+
+b) Algunos investigadores creen que solo el colesterol con niveles superiores a
+250 mg / dL indican un riesgo suficientemente alto para justificar el 
+tratamiento. ¿Qué proporción de la población representa este grupo?
+```{r}
+
+```
+
+
+c) ¿Qué proporción de la población general tiene niveles límite de colesterol 
+alto, es decir,> 200 pero menors de <250 mg / dL?
+```{r}
+
+```
+
+
+d) Genera una muestra de 10 pacientes de la Estima la media de la muestra con
+su intervalo de confianza al 99%. Interpreta los resultados
+```{r}
+
+```
+
+
+e) Replica el apartado anterior con una muestra de 20.Comenta los resultados y
+justifica las diferencias con el apartado anterior.
+Nota.
+- Aplica el siguiente código para poder replicar los resultados si los ejecutas 
+varias veces,ya que si no fijas la semilla(seed) cada vez que ejecutes los 
+comandos te dará un resultado diferente set.seed (unnumero)
+- cambia “unnumero” por un número para que siempre genere la misma muestra. Así 
+por ejemplo .x<-rnorm(10,mean=###, sd=####)
+- genera una muestra de tamaño 10 con las medias y desviaciones típicas que 
+sustituyas
+```{r}
+
+```
+
