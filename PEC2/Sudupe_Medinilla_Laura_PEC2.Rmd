@@ -261,6 +261,87 @@ sobre dicho conjunto de datos. Las variables escogidas en cada uno de los casos
 posibles se dejan a elección del estudiante. Para desarrollar el ejercicio,
 podéis basaros en las pautas realizadas en el Caso práctico 1 del LAB5.
 
+```{r}
+#cargamos el paquete y el conjunto de datos
+library(MASS)
+data(epil)
+head(epil)
+#eliminamos valores NA
+data_epil <- na.omit(epil)
+data_epil$trt <- factor(data_epil$trt, levels = c("placebo", "progabide"), 
+                        labels = c(0,1))
+#convertimos todas las variable de int a num
+data_epil$trt <- as.numeric(as.character(data_epil$trt))
+
+
+```
+
+
+Estudio de regresión lineal y multiple.
+```{r}
+#vamos a ver el tipo de variables
+str(data_epil)
+#realizamos un breve estudio estadistico
+summary(data_epil)
+#veamos cuales son las correlaciones entre variables
+cor(x=data_epil, method = "pearson")
+```
+Vemos una relación entre las variables "y", "base"
+```{r}
+#representamos la relación entre las variables
+pairs(data_epil)
+```
+
+```{r}
+#realizamos el modelo de regresión lineal
+lineal_regre1 <- lm(formula=y~base,data=data_epil)
+summary(lineal_regre1)
+```
+
+```{r}
+#la formula
+lm(formula = y ~ base, data = data_epil)
+#representamos el diagrama
+plot(data_epil$base, data_epil$y,xlab = "the count for the 2-week period", ylab = "the counts in the baseline 8-week period.")
+abline(lineal_regre1)
+
+```
+El modelo de regrasión lineal muestra "Multiple R-squared:  0.5807", un ajuste 
+decente.
+
+Ahora realizaremos el modelo de regresión múltiple. Evaluaremos cuales son los 
+posiblres predictores para la variable "y" .
+```{r}
+#Modelo de regresión múltiple
+rmr_epil <- lm(data_epil$y~
+                 data_epil$trt+data_epil$base+data_epil$age+data_epil$V4+
+                 data_epil$subject+data_epil$period+data_epil$lbase+
+                 data_epil$lage)
+summary(rmr_epil)
+
+```
+Ahora evaluamos cuáles son los mejores predictores
+```{r}
+step(object = rmr_epil, direction = "both", trace = 1)
+```
+En el resultado del "Call" se aprecian cuales seran los mejores predictores, calculamos de nuevo el modelo de regresión sobre estos
+```{r}
+#Modelo de regresión con los mejores predictores
+rmr_epil_predictores <- lm(formula = data_epil$y ~ data_epil$trt + data_epil$base + data_epil$subject + 
+    data_epil$lbase + data_epil$lage)
+
+summary(rmr_epil_predictores)
+```
+
+Tenemos un modelo R-squared (0.6341), se ha incrementado.
+
+
+
+
+
+
+
+
 
 Sección 4. Investigación de herramientas d R 
 
