@@ -181,7 +181,7 @@ Una distribución de Poisson. Es una distribución de probabilidad discreta que 
 1200 accesos?
 ```{r}
 prob_e <- dpois(c(0:1200),1176)
-prob_e
+head(prob_e)
 
 #NO ESTOY SEGURA DE LAMDA
 ```
@@ -203,31 +203,81 @@ determinada enfermedad altamente contagiosa la transmita a otras personas es de
 un 30%.
 
 a) ¿De qué tipo de distribución se trata?
-```{r}
 Una distribución binomial
-```
 
 b) Utilizando Rstudio y/o Rcommander, generad 10000 valores aleatorios
 suponiendo que para cada 10 personas observadas, hay una probabilidad de 0.3
 de que éstas sean contagiadas.
 ```{r}
-set.seed(9991)
-muestra_b <- sample(c(1,0),1000,rep=T,prob=c(0.3,0.7))
+muestra_b <- sample(c("contagiado","no-contagiado"),1000,rep=T,prob=c(0.3,0.7))
 head(muestra_b)
 ```
 
 c) Representad en un histograma la anterior distribución.
 ```{r}
-
+plot(factor(muestra_b))
 ```
 
 
-d) Repetid los apartados a) y b) para los casos correspondientes a 5, 100 y 1000
+d) Repetid los apartados b) y c) para los casos correspondientes a 5, 100 y 1000
 personas utilizando la funcion replicate(). ¿Qué podéis observar?
 ```{r}
+par(mfrow=c(1,3))
+numPer1 <- 5
+repl1 <- replicate(numPer1, {
+  muestra_b
+})
+plot(factor(repl1))
 
+numPer2 <- 100
+repl2 <- replicate(numPer2, {
+  muestra_b
+})
+plot(factor(repl2))
+
+numPer3 <- 1000
+repl3 <- replicate(numPer3, {
+  muestra_b
+})
+plot(factor(repl3))
 ```
+Observamos que la distribución no cambia, pues no cambiamos la probabilidad, 
+solo la muestra.
 
+Sección 3. Machine learning con R 
+
+EJERCICIO 5. 
+
+A continuación se pide realizar un breve análisis de datos utilizando técnicas 
+de machine learning.
+
+Este estudio se realizará a partir del conjunto de datos epil del paquete MASS.
+Como orientación, recordad que tenéis que realizar;
+- un estudio de regresión lineal
+- regresión múltiple
+- test ANOVA 
+- test clustering 
+sobre dicho conjunto de datos. Las variables escogidas en cada uno de los casos 
+posibles se dejan a elección del estudiante. Para desarrollar el ejercicio,
+podéis basaros en las pautas realizadas en el Caso práctico 1 del LAB5.
+
+
+Sección 4. Investigación de herramientas d R 
+
+EJERCICIO 6. Ampliación R
+Realizad un breve estudio a escoger entre los siguientes temas:
+
+a) Shiny es un framework para el desarrollo de aplicaciones web en R, de manera
+que se puedan convertir los análisis a aplicaciones web interactivas. Localizad 
+unaaplicación (https://shiny.rstudio.com/gallery/) que pueda tener un uso 
+potencial en bioinformática/bioestadística.
+
+b) R representa información en mapas utilizando el paquete ggmap. Localizad una
+aplicación (https://www.rdocumentation.org/packages/ggmap/versions/2.6.2 )
+que pueda tener un uso potencial en bioinformática/bioestadística.
+
+c) ¿Cuáles son los paquetes principales que un científico de datos debe conocer 
+de R? ¿Cuál es la finalidad principal de cada uno de estos paquetes?
 
 
 

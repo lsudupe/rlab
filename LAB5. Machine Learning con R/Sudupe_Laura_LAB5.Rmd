@@ -1,0 +1,110 @@
+---
+title: "LAB5"
+author: "Laura Sudupe"
+date: "23/11/2020"
+output: html_document
+---
+
+EJERCICIO 1. Modelos de regresión lineal y multiple
+
+A partir del conjunto de datos ovarian del paquete survival, haced un estudio de
+regresión lineal sobre un par de variables que, a priori, penséis que pueden 
+presentar correlación, y un estudio de regresión múltiple seleccionando los
+mejores predictores.
+
+
+```{r}
+library(survival)
+data(ovarian)
+head(ovarian)
+```
+
+```{r}
+#vemos la correlación que hay entre las variables
+cor(x=ovarian, method="pearson")
+```
+Vemos que la variable que parece presentar mayor correlación lineal con futime
+es age.
+```{r}
+#calculamos el coeficiente de correlación entre estas dos variables
+cor(ovarian[,c("age","futime")], use = "complete")
+```
+El valor de correlación es bastante aceptable.
+
+```{r}
+#Generamos el modelo lineal correspondiente a la estimación por mínimos cuadrados
+regre_lineal1 <- lm(futime~age, data=ovarian)
+summary(regre_lineal1)
+```
+Tenemos un R cuadrado de 0.4204, nos da información acerca del grado de ajuste
+del modelo. No se acerca mucho a 1 pero nos indica que hay relación. 
+```{r}
+lm(formula = futime ~ age, data = ovarian)
+```
+
+```{r}
+#Realizamos la recta de minimos cuadrados
+plot(ovarian$age, ovarian$futime, xlab="age", ylab="futime")
+abline(regre_lineal1)
+```
+
+Vemos una correlación entre las variables. Para ver si la supervivencia del 
+cancer de ovario viene determinada por algun factor más, realizaremos un modelo
+de regresión multiple, como ya hemos realizado antes.
+```{r}
+#vemos la correlación que hay entre las variables
+cor(x=ovarian, method="pearson")
+```
+Nos indica que la varibale fustat tambien presenta relación.
+```{r}
+#Generamos el modelo de regrasión múltiple
+mrm_ovarian <- lm(ovarian$futime
+                  ~ovarian$fustat+ovarian$age+ovarian$resid.ds+ovarian$rx+
+                    ovarian$ecog.ps,data=ovarian)
+summary(mrm_ovarian)
+```
+Una vez generado el modelo con todas las variables como predictoras, vemos que 
+el coeficiente de determinación Multipl R-squared es bastante aceptable 0.6727 
+y el p-value tambien es significativo.
+
+Para saber cuales son los mejores predictores
+```{r}
+step(object=mrm_ovarian, direction = "both", trace=1)
+```
+Las variables potenciales para ser predictores son las que nos expecifica "Call"
+```{r}
+#Ejecutamos de nuevo el modelo
+mrm_ovarian_predictores <- (lm(formula=ovarian$futime~ovarian$fustat+                                             ovarian$age+ovarian$rx+ovarian$ecog.ps, 
+                               data = ovarian))
+summary(mrm_ovarian_predictores)
+```
+Con los datos que tenemos, este sería el modelo que explicaría que factores 
+influyen en la supervivencia del cáncer de ovario.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
