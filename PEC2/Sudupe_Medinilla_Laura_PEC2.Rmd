@@ -324,16 +324,65 @@ Ahora evaluamos cuáles son los mejores predictores
 ```{r}
 step(object = rmr_epil, direction = "both", trace = 1)
 ```
-En el resultado del "Call" se aprecian cuales seran los mejores predictores, calculamos de nuevo el modelo de regresión sobre estos
+En el resultado del "Call" se aprecian cuales seran los mejores predictores, 
+calculamos de nuevo el modelo de regresión sobre estos
 ```{r}
 #Modelo de regresión con los mejores predictores
-rmr_epil_predictores <- lm(formula = data_epil$y ~ data_epil$trt + data_epil$base + data_epil$subject + 
-    data_epil$lbase + data_epil$lage)
+rmr_epil_predictores <- lm(formula = data_epil$y ~ data_epil$trt + 
+                             data_epil$base + data_epil$subject + 
+                             data_epil$lbase + data_epil$lage)
 
 summary(rmr_epil_predictores)
 ```
 
 Tenemos un modelo R-squared (0.6341), se ha incrementado.
+
+
+Ahora realizaremos el test ANOVA para las variables "y" y "age".
+```{r}
+#Definiremos los vectores de ambas variables
+y_vector <- c(data_epil$y)
+age_vector <- c(data_epil$age)
+
+#Definimos un dataframe que guarde ambos vectores
+df_anova <- data.frame(y_vector, age_vector)
+head(df_anova)
+
+#Mostramos el numero de observaciones por edad
+table(df_anova$age_vector)
+
+#calculamos la media de la edad en función de y (el recuento de ataques en un 
+#periodo de 2 semanas)
+aggregate(age_vector~y_vector,data=df_anova,FUN=mean)
+
+```
+```{r}
+#Calculamos el diagrama
+boxplot(age_vector~y_vector,data=df_anova,id.method="y")
+```
+No consigo determinar la normalidad aplicando el test de Kolmogorov-Smirnov, por
+lo tanto, uso el test de Shapiro-Wilk
+```{r}
+df_anova_shapiro <- lapply(df_anova, shapiro.test)
+df_anova_shapiro
+```
+Observamos que ambos grupos tienen un p_valor inferior a 0.05, por lo tanto, 
+sabemos que ninguno de los dos grupos cumple las condiciones de normalidad. No 
+teniendo sentido realizar el test de ANOVA.
+
+
+
+A continuación realizaremos el test de Clustering.
+
+
+
+
+
+
+
+
+
+
 
 
 
