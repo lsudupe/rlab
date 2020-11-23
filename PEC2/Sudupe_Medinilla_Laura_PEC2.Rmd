@@ -374,22 +374,32 @@ teniendo sentido realizar el test de ANOVA.
 
 A continuación realizaremos el test de Clustering.
 
+Comenzamos con un agrupamiento jerárquico aglomerativo. Cada observación sera un clúster que se va a ir organizando hasta converger en una única rama central.
+```{r}
+library(cluster)
+#especificamos los valores de distancia
+d_agl_epil <- dist(data_epil, method = "euclidean")
 
+#calculamos el cluster jerárquico
+hc_agl_epil <- hclust(d_agl_epil, method = "complete")
 
+#representamos el dendograma
+plot(hc_agl_epil, cex=0.6, hang=-1, main = "Dendograma de cluster epil")
+```
+Ahora realizaremos un agrupamiento divisional jerárquico
+```{r}
+#Calculamos los clusteres jerárquicos
+hc_ag_epil <- agnes(data_epil, method = "complete")
 
+#Representamos el dendograma
+pltree(hc_ag_epil, cex=0.6, hang=-1, main="Dendograma epil de agnes")
+```
+```{r}
+#Calculamos el coeficiente de aglomeración
+hc_ag_epil$ac
+```
 
-
-
-
-
-
-
-
-
-
-
-
-
+Tenemos un coeficiente muy cercano a 1, indicandonos que la agrupación es fuerte.
 
 
 Sección 4. Investigación de herramientas d R 
@@ -397,17 +407,20 @@ Sección 4. Investigación de herramientas d R
 EJERCICIO 6. Ampliación R
 Realizad un breve estudio a escoger entre los siguientes temas:
 
-a) Shiny es un framework para el desarrollo de aplicaciones web en R, de manera
-que se puedan convertir los análisis a aplicaciones web interactivas. Localizad 
-unaaplicación (https://shiny.rstudio.com/gallery/) que pueda tener un uso 
-potencial en bioinformática/bioestadística.
-
-b) R representa información en mapas utilizando el paquete ggmap. Localizad una
+ R representa información en mapas utilizando el paquete ggmap. Localizad una
 aplicación (https://www.rdocumentation.org/packages/ggmap/versions/2.6.2 )
 que pueda tener un uso potencial en bioinformática/bioestadística.
 
-c) ¿Cuáles son los paquetes principales que un científico de datos debe conocer 
-de R? ¿Cuál es la finalidad principal de cada uno de estos paquetes?
+Podria usarse ggmap para obtener mapas del genoma. Por ejemplo, en USCS se hacen mapas del genoma en dos dimensiones con las coordenadas de los genes. 
+
+ggmap tiene diversas funciones que se pueden dividir en 3 categorias;
+- Obtención de mapas de diversas fuentes. Para el proposito de la bioinformatica, estos mapas se podrian obtener de los "genome browser" de diversas paginas.
+
+- Tiene funciones utilizan APIs de Google por ejemplo. En nuestro caso abria que modificarlo a buscadores que nos pudieran interesar. Consultar la información de distintos proveedores via API sobre las coordenadas de un cromosoma determinado.
+
+- Funciones que pintan mapas y representan determinador elementos. En el caso de la bioinformatica podrian ser diferentes codones, islas GC o variedades de caracteristicas geneticas a tener en cuenta. Esta funcionalidad por ejemplo, si se esta llevando a cabo un determinado estudio, podria usarse geom_point() dentro de ggmap() para agregar marcadores en nucleotidos señalados.
+
+
 
 
 
