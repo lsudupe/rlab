@@ -105,7 +105,10 @@ media = μ = 219mg / dL y desviación estándar = σ = 50mg / dL.
 a) Si el rango clínicamente deseable para el colesterol es <200 mg / dL, ¿qué
 proporción de personas tienen clínicamente niveles deseables de colesterol?
 ```{r}
-
+#Mediante los valores acumulados de la curva normal, podemos calcular la 
+#proporción de observaciones que se encuentran antes o despues de la medida
+#de una observación.
+pnorm(200, mean=219,sd=50, lower.tail = TRUE)
 ```
 
 
@@ -113,35 +116,33 @@ b) Algunos investigadores creen que solo el colesterol con niveles superiores a
 250 mg / dL indican un riesgo suficientemente alto para justificar el 
 tratamiento. ¿Qué proporción de la población representa este grupo?
 ```{r}
-
+pnorm(250, mean=219, sd=50, lower.tail = FALSE)
 ```
 
 
 c) ¿Qué proporción de la población general tiene niveles límite de colesterol 
 alto, es decir,> 200 pero menors de <250 mg / dL?
 ```{r}
-
+props <-pnorm(c(200,250), mean=219, sd=50, lower.tail = TRUE)
+lim_alto <- props[2] - props[1]
+lim_alto
 ```
 
 
-d) Genera una muestra de 10 pacientes de la Estima la media de la muestra con
-su intervalo de confianza al 99%. Interpreta los resultados
+d) Genera una muestra de 10 pacientes de la población. Estima la media de la
+muestra con su intervalo de confianza al 99%. Interpreta los resultados
 ```{r}
-
+set.seed(9991)
+muestra_d <- rnorm(10, mean=214, sd=50)
+t.test(muestra_d, conf.level = 0.99)
 ```
 
 
 e) Replica el apartado anterior con una muestra de 20.Comenta los resultados y
 justifica las diferencias con el apartado anterior.
-Nota.
-- Aplica el siguiente código para poder replicar los resultados si los ejecutas 
-varias veces,ya que si no fijas la semilla(seed) cada vez que ejecutes los 
-comandos te dará un resultado diferente set.seed (unnumero)
-- cambia “unnumero” por un número para que siempre genere la misma muestra. Así 
-por ejemplo .x<-rnorm(10,mean=###, sd=####)
-- genera una muestra de tamaño 10 con las medias y desviaciones típicas que 
-sustituyas
-```{r}
 
+```{r}
+muestra_e <- rnorm(20, mean=214, sd=50)
+t.test(muestra_e, conf.level = 0.99)
 ```
 
