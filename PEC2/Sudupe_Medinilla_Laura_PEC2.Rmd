@@ -338,39 +338,67 @@ summary(rmr_epil_predictores)
 Tenemos un modelo R-squared (0.6341), se ha incrementado.
 
 
-Ahora realizaremos el test ANOVA para las variables "y" y "age".
+
+
+ANOVA
+
+Ahora realizaremos el test ANOVA para las variables "trt" y "base".
 ```{r}
 #Definiremos los vectores de ambas variables
-y_vector <- c(data_epil$y)
-age_vector <- c(data_epil$age)
+trt <- c(data_epil$trt)
+base <- c(data_epil$base)
 
 #Definimos un dataframe que guarde ambos vectores
-df_anova <- data.frame(y_vector, age_vector)
+df_anova <- data.frame(trt, base)
 head(df_anova)
 
 #Mostramos el numero de observaciones por edad
-table(df_anova$age_vector)
+table(df_anova$trt)
 
-#calculamos la media de la edad en función de y (el recuento de ataques en un 
-#periodo de 2 semanas)
-aggregate(age_vector~y_vector,data=df_anova,FUN=mean)
+#calculamos la media del recuento para ambos tratamientos)
+aggregate(base~trt,data=df_anova,FUN=mean)
 
 ```
+Vemos que el número de observaciones no es constante, tenemos un modelo 
+no-equilibrado. Hay que tenerlo en cuento al comprobar la normalidad y la 
+homocedasticidad.
+
 ```{r}
 #Calculamos el diagrama
-boxplot(age_vector~y_vector,data=df_anova,id.method="y")
+boxplot(base~trt,data=df_anova,id.method="y")
 ```
-No consigo determinar la normalidad aplicando el test de Kolmogorov-Smirnov, por
-lo tanto, uso el test de Shapiro-Wilk
+Ambos grupos siguen una distribución simetrica. Hay algun valor atipico  y el
+tamaño de las cajas es similar, no habiendo inicios de no-homocedasticidad.
+
+Ahora verificaremos las condiciones para un ANOVA;
+
+- Independencia:
+Disponemos de una muestra de estudio donde las observaciones de cada grupo son
+independientes.
+
+- Normalidad:
+La variable cuantitativa debe de distribuirse de forma normal en cada uno de los
+grupos. El estudio de la normalidad puede hacerse de forma gráfica o con test
+de hipotesis.
 ```{r}
-df_anova_shapiro <- lapply(df_anova, shapiro.test)
-df_anova_shapiro
+df_anova
 ```
-Observamos que ambos grupos tienen un p_valor inferior a 0.05, por lo tanto, 
-sabemos que ninguno de los dos grupos cumple las condiciones de normalidad. No 
+
+```{r}
+#Estudio de la normalidad, Test Kolmogorov-Smirnov
+require(nortest)
+by(data=df_anova, INDICES = 
+     df_anova$trt, FUN = function(x){lillie.test(x$base)})
+
+```
+
+Observamos que p_valor inferior a 0.05, por lo tanto, 
+sabemos que no se cumplen las condiciones de normalidad. No 
 teniendo sentido realizar el test de ANOVA.
 
 
+
+CLUSTERING
 
 A continuación realizaremos el test de Clustering.
 

@@ -81,10 +81,81 @@ summary(mrm_ovarian_predictores)
 Con los datos que tenemos, este sería el modelo que explicaría que factores 
 influyen en la supervivencia del cáncer de ovario.
 
+EJERCICIO 2. Análisis de varianza (ANOVA)
+
+realizad un análisis de varianza (ANOVA) sobre el conjunto de datos birthwt considerando las variables smoke y bwt.
+
+```{r}
+library(MASS)
+data("birthwt")
+head(birthwt)
+```
+```{r}
+#creamos los vectores con los datos que queremos estudiar
+fuma <- c(birthwt$smoke)
+peso <- c(birthwt$bwt)
+#definimos el conjunto de datos
+df_birthwt_fuma <- data.frame(fuma, peso)
+head(df_birthwt_fuma)
+#numero de observaciones por grupo
+table(df_birthwt_fuma$fuma)
+
+
+```
+Dado que el número de observaciones por grupo no es cte, se trata de un modelo 
+NO-equilibrado
+
+Calculamos la media y la varianza
+
+
+```{r}
+#Media de los pesos por raza
+aggregate(peso~fuma, data = df_birthwt_fuma, FUN = mean)
+
+#Lo representamos graficamente para ver si existen asimetrias
+#puntos atípicos u otras diferencias
+boxplot(birthwt$bwt~birthwt$smoke, data = birthwt, id.method="y")
+
+```
+
+```{r}
+par(mfrow=c(2,2))
+qqnorm(df_birthwt_fuma[df_birthwt_fuma$fuma==1,"peso"],main="Fuma")
+qqline(df_birthwt_fuma[df_birthwt_fuma$fuma==1,"peso"])
+qqnorm(df_birthwt_fuma[df_birthwt_fuma$fuma==0,"peso"],main="No-fuma")
+qqline(df_birthwt_fuma[df_birthwt_fuma$fuma==0,"peso"])
+```
+```{r}
+#Estudio de la normalidad, Test Kolmogorov-Smirnov
+require(nortest)
+by(data=df_birthwt_fuma, INDICES = 
+     df_birthwt_fuma$fuma, FUN = function(x){lillie.test(x$peso)})
+```
+El test no nos muestra falta de normalidad.
+
+A continuación hay que evaluar la varianza constante entre los grupos, la homocedasticidad. Para ello usamos el test Fligner-Killeen, que es un test basado en la mediana.
+
+```{r}
+#Test Fligner-Killen para evaluar homocedasticidad
+fligner.test(df_birthwt_fuma$fuma~df_birthwt_fuma$peso)
 
 
 
+```
 
+p-value > 0.05, lo que nos indica que las diferencias entre las varianzas de los grupos no son estadísticamente sifnificativas.
+
+```{r}
+#Análisis de ANOVA
+
+anova_birthwt <- 
+  aov(df_birthwt_fuma$peso~df_birthwt_fuma$fuma, data=df_birthwt_fuma)
+summary(anova_birthwt)
+plot(anova_birthwt)
+```
+
+
+Los residuos muestran la misma varianza para los distintos niveles y se distribuyen de forma normal. No existen diferencias significativas entre los grupos.
 
 
 

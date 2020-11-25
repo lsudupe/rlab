@@ -5,6 +5,39 @@ date: "16/11/2020"
 output: pdf_document
 ---
 
+
+EJERCICIO 1.
+
+a) Las probabilidades de una variable discreta X están representadas mediante
+uno de los siguientes gráficos:
+
+Las probabilidades de un suceso, deben cumplir los axiomas de Kolmogorov. Uno 
+de los tres axiomas dice que la probabilidad del espacio muestral es 1. En el
+grafico de la izquiera es 0.09, por lo que el que es correcto es el de la 
+derecha.
+
+- Calcular:
+
+a) P(X = 6)
+P = 0.25
+b) P(X ≥ 4)
+P <= 0.2
+c) P(6 ≤ X < 8)
+P(6 ≤ X < 8) = Fx(8) - Fx(6)
+d) P(X = 6|X ≥ 4)
+P(X = 6|X ≥ 4) = 0.25|P<=0.2
+
+b) Uno de los siguientes gráficos representa la función de distribución de una
+variable continua Y, cual y porque:
+
+a) P(Y = 0)
+b) P(Y < 25)
+c) P(10 < Y < 25)
+d) P(Y > 10|Y < 25)
+
+
+
+
 EJERCICIO 2.
 Según La revista científica The Lancet que ha publicado un extenso estudio sobre 
 los efectos que la distancia interpersonal, el uso de mascarillas y otros medios
@@ -17,6 +50,8 @@ infectarse.
 ```{r}
 p_a <- (40 * 17.8)/100
 p_a
+prueba <- dbinom(40,100,0.178)
+prueba
 ```
 b) ¿Si uno de los pacientes resulta infectado , cual es la probabilidad que sea 
 de los que no llevaba mascarilla?
@@ -60,8 +95,17 @@ muestra <- rbinom(1000,15,0.031)
 
 #calcular intervalo de confianza al 95%
 
-prop.test(x=5, n=100, conf.level=0.95, correct = FALSE) #$conf.int
+prop.test(x=15, n=1000, conf.level=0.95, correct = FALSE) #$conf.int
+
 ```
+
+```{r}
+prop.test(x=15, n=1000, conf.level=0.95)
+```
+
+
+
+
 
 Vemos que el valor p menor que 0.05, por rechazamos la hipotesis nula de que p=0.05
 El intervalo en el que estara nuestra media un 95% de las veces, 
