@@ -158,7 +158,28 @@ plot(anova_birthwt)
 Los residuos muestran la misma varianza para los distintos niveles y se distribuyen de forma normal. No existen diferencias significativas entre los grupos.
 
 
+EJERCICIO 3. Clustering
 
+Realizad un agrupamiento jerárquico de tipo aglomerativo y de tipo divisivo para el conjunto de datos melanoma.
+
+```{r}
+#Agrupamiento jerárquico aglomerativo. Cada observación es un clúster que se va a ir organizando hasta converger en una única rama central.
+library(MASS)
+library(cluster)
+data_melanoma <- Melanoma
+
+#Epecificamos los valores de distancia
+d_agl_m <- dist(data_melanoma, method = "euclidean")
+#Calculamos el cluster jerarquico
+cluster_j_agl_m <- hclust(d_agl_m, method = "complete")
+#representamos el dendograma
+plot(cluster_j_agl_m, cex=0.6, hang=-1, main="Dendograma de cluster")
+        
+        
+        
+        
+        
+```
 
 
 
