@@ -55,6 +55,7 @@ F_no_NA <- function(x){
 }
 
 df_no_NA <- F_no_NA(df)
+df_no_NA
 ```
 
 d) (0,6 puntos) Definid una función que, dado un valor numérico que corresponda
@@ -175,15 +176,16 @@ siguientes cuestiones:
 
 • ¿Qué tipo de distribución representa este caso?
 
-Una distribución de Poisson. Es una distribución de probabilidad discreta que expresa una frecuencia de ocurrencia media. Nos da la probabilidad de que ocurra un determinado número de eventos durante cierto periodo de tiempo.
+Una distribución de Poisson. Es una distribución de probabilidad discreta que 
+expresa una frecuencia de ocurrencia media. Nos da la probabilidad de que ocurra
+un determinado número de eventos durante cierto periodo de tiempo.
 
 • ¿Cuál es la probabilidad de qué, en un determinado mes, haya una media de
 1200 accesos?
 ```{r}
 prob_e <- dpois(c(0:1200),1176)
-head(prob_e)
+prob_e
 
-#NO ESTOY SEGURA DE LAMDA
 ```
 
 • Representad en un diagrama de puntos el apartado anterior.
