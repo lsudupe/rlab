@@ -1,0 +1,246 @@
+---
+title: "PEC 3"
+author: "authors"
+date: "Dic 14, 2020"
+output:
+  pdf_document:
+    toc: yes
+    toc_depth: 3
+---
+
+\newpage
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+install.packages("faraway")
+```
+
+
+```{r, echo = FALSE}
+# Función para cargar todos los paquetes necesarios
+LoadLibraries <- function() {
+  myLibraries <- c("knitr", "ggplot2", "faraway")
+  invisible(lapply(myLibraries, library, character.only = TRUE))
+}
+
+LoadLibraries()
+```
+
+
+El objetivo de la PEC es elaborar un análisis estadístico en R de un caso práctico con
+datos de obtención propia (pertenecientes a un determinado ámbito), lo más ajustado a la
+realidad. A continuación, podéis encontrar una serie de pautas para su realización: 
+
+# Ejercicio 1 (1 punto) 
+
+**Buscar un conjunto de datos relacionados con la Bioestadística o la Bioinformática. Posibles recursos bibliográficos son aquellos presentados en la PEC1, por ejemplo: http://www.bioinformatics.org/sms2/index.html; o bien http://biostat.mc.vanderbilt.edu/wiki/Main/DataSets. También es posible utilizar fuentes propias o de interés, siempre teniendo en cuenta que sean datos públicos para los usuarios. Será necesario especificar la procedencia y la justificación de la elección de los datos. **
+
+Los datos seleccionados para esta PEC proceden del package `faraway` de `R`. Son del Western Collaborative Group Study. Se trata de un dataset de 3145 hombres de entre 39 y 59 años de San Francisco. Todos ellos estaban libres de padecer una enfermadad coronaria y lo que se ha hecho es evaluar pasados 10 años si esta situación había cambiado a la vez que se midieron algunas características físicas y clínicas de estos hombres.
+
+Este conjunto de datos puede ser útil para estudiar que variables influyen en la aparición de esta enfermedad, el CHD.
+
+Tomar como base para explicar los datos esto:
+
+he WCGS began in 1960 with 3,524 male volunteers who were employed by 11 California companies. Subjects were 39 to 59 years old and free of heart disease as determined by electrocardiogram. After the initial screening, the study population dropped to 3,154 and the number of companies to 10 because of various exclusions. The cohort comprised both blue- and white-collar employees. At baseline the following information was collected: socio-demographic including age, education, marital status, income, occupation; physical and physiological including height, weight, blood pressure, electrocardiogram, and corneal arcus; biochemical including cholesterol and lipoprotein fractions; medical and family history and use of medications; behavioral data including Type A interview, smoking, exercise, and alcohol use. Later surveys added data on anthropometry, triglycerides, Jenkins Activity Survey, and caffeine use. Average follow-up continued for 8.5 years with repeat examinations
+
+
+```{r, echo = FALSE}
+data <- wcgs
+rownames(data) <- c(1:nrow(data))
+```
+
+\newpage
+# Ejercicio 2 (1 punto) 
+
+**Utilizando R, mostrar y explicar qué tipo de ficheros se han importado, las variables de estudio (tipo, clasificación, ...), así como todo aquello relevante para el estudio. Incluir capturas de pantalla y las instrucciones en R utilizadas para importar y mostrar los datos. **
+
+Este estudio consta de `r ncol(data)` variables. Estas son algunas medidas físicas y clínicas de un conjunto de `r nrow(data)` hombres. Una descripción más detallada de estas es:
+
+* age: edad en años
+* height: altura en pulgadas
+* weight: peso en libras 
+* sdp: presión sistólica en mm Hg
+* dbp: presión diastólica en mm Hg
+* chol: nivel de colesterol sérico en ayunas
+* behave: tipo de comportamiento (niveles 'A1', 'A2', 'A3', 'A4')?
+* cigs: número diario de cigarrillos fumados
+* dibep: tipo de comportamiento con niveles 'A' (Agresivo) y 'B' (pasivo)
+* chd: si ha desarrollado CHD(coronary heart disease), tiene niveles 'no' y 'yes'
+* typechd: tipo de CHD desarrollado, tiene niveles 'angina', 'infdeath', 'none', 'silent'
+* timechd: tiempo hasta que se ha desarrollado el CHD (cuanto se detectó) o finalización del seguimiento
+* arcus: arco senil (mancha en la pupila), tiene niveles 'absent' 'present'.
+
+Los primeros registros del dataset se muestran a continuación:
+
+```{r}
+head(data)
+```
+
+Algunas características del dataset y sus variables son:
+
+```{r}
+dim(data) # número de filas y columnas
+str(data) # estructura de las variables
+```
+
+Podemos comprobar si existen valores faltantes y/o nulos en el conjunto de datos:
+
+```{r}
+sum(is.na(data))    # comprobar datos missing
+sum(is.null(data))  # comprobar datos null
+```
+
+Vemos que hay `r sum(is.na(data))` datos faltantes. Podemos eliminar las filas que los contengan y seguir con ese nuevo conjunto de datos para el estudio. Las nuevas dimensiones del dataset son:
+
+```{r}
+data <- na.omit(data) # filtro dataset sin NA
+dim(data)
+```
+
+Además, podemos crear una nueva variable `fumador`, que será un factor que toma valores 'si' y 'no',  a partir de la información de la variable `cigs`:
+
+```{r}
+data$fumador <- ifelse(data$cigs>0, "si", "no") # creación variable fumador
+table(data$fumador)
+```
+
+Vemos que el `r round(sum(data$fumador=="si")/nrow(data), 3) * 100`% de los hombres del estudio son fumadores.
+
+Por otro lado, podemos transformar a otras unidades (m y kg) las variables `height` y `weight` con las siguientes funciones y crear la variable `IMC`, a partir de la fórmula $IMC=\frac{kg}{m^2}$:
+
+```{r}
+# Funciones cambio de unidades:
+
+to_m <- function(variable){
+  new_units <- variable / 39.370
+  return(new_units)
+}
+
+to_kg <- function(variable){
+  new_units <- variable / 2.2046
+  return(new_units)
+}
+```
+
+```{r}
+# Transformación unidades
+data$height <- to_m(data$height)
+data$weight <- to_kg(data$weight)
+
+# Nueva variable IMC
+data$IMC <- data$weight/data$height^2
+```
+
+
+En este caso no ha sido necesario importar ningún fichero de datos porque este dataset ya viene incorporado en R. Por este motivo vamos a mostrar como exportaríamos los datos a ficheros .csv y .txt. Los exportamos sin indicar directorio así que se guardaran en la carpeta de trabajo que tengamos configurada al ejecutar este script.
+
+* .csv
+
+```{r}
+write.csv(data, file = "datos_wcgs.csv")  # exportar a .csv
+tail(read.csv("datos_wcgs.csv"))          # importar y ver últimos registros
+```
+
+* .txt
+
+```{r}
+write.table(data, file = "datos_wcgs.txt")  # exportar a .txt
+tail(read.table("datos_wcgs.txt"))          # importamos y ver últimos registros
+```
+
+\newpage
+
+# Ejercicio 3 (2 puntos) 
+
+**Con la Sección 2 de la PEC1 como base, elaborar y analizar una serie de cuestiones, que ayuden a explorar y a familiarizarse mejor con los datos de estudio. Además, en algunos casos, puede utilizarse la definición de funciones y el lenguaje SQL estudiado en el LAB3.**
+
+
+A continuación analizaremos los datos para poder vislumbrar el valor que pueden aportar las variables. Para ello, presentaremos una serie de observaciones y cuestiones sobre los mismos.
+
+Como se ha explicado anteriormente, el grupo de estudio correponde a un grupo de hombres. Vamos a hacernos una idea del grupo de estudio.
+
+Los datos estadisticos de todas las columnas
+```{r}
+summary(data)
+```
+La edad, estatura y peso medios son 45 años, 1.78 cm y 77.1 kg. Como datos a tener en cuenta podemos ver que el nivel de colesterol serico en ayunas tiene un rango muy amplio, con un min de 103 y un max de 645. Este dato podemos contrastarlo mediante el calculo de la desviación estandar.
+
+```{r}
+colesterol_sd <- sd(data$chol)
+colesterol_sd
+```
+
+En el siguiente paso, vamos a comprobar la dependencia que tienen las variables entre si. Sabemos que todas las variables no son cuantitativas, por lo tanto, vamos a aislarlas en un vector y a continuación ver que correlación hay entre ellas.
+
+```{r}
+str(data)
+```
+
+
+```{r}
+data_cuantitativa <- data[, c(1,2,3,4,5,6,8,12,15)] #Aislar los datos
+#A continuación, nombramos las columnas
+colnames(data_cuantitativa) <- c('Edad', 'Altura', 'Peso', 'P.sistolica', 'P.diastolica', 'Nivel colesterol', 'N/d cigarrillos', 'Tipo CHD', 'IMC')
+
+#Redondeamos el resultado
+correlación <- round(cor(data_cuantitativa), digits = 2)
+correlación
+
+```
+En la matriz de correlaciones podemos ver que hay una alta correlación entre ambas presiones. Tambien se aprecia una relación entre la IMC y ambas presiones. No tan llamativa pero tambien hay relación entre los niveles de colesterol serico y las presiones sistolica y diastolica
+
+Obtenemos una representación grafica de la correlación para un analisis mas visual de la misma.
+```{r}
+install.packages("corrplot")
+library('corrplot')
+corrplot.mixed(correlación)
+```
+
+
+
+
+
+\newpage
+# Ejercicio 4 (1 punto) 
+
+Realizar un análisis descriptivo de los datos. El análisis debe incluir (tal
+y como aparece en la Sección 3 de la PEC1) un resumen paramétrico de los datos
+y su representación gráfica, que mejor defina y complemente cada una de dichas
+variables
+
+\newpage
+# Ejercicio 5 (1,5 punto) 
+
+Complementando el apartado anterior, elaborar un análisis de
+regresión de dos conjuntos de variables (LAB2 y Ejercicio 6 de la PEC1). La
+elección de las variables, los resultados, así como su relación deben de estar
+correctamente justificada.
+
+\newpage
+# Ejercicio 6 (1 punto) 
+
+Realizar, a partir de los conceptos trabajados en el LAB4 y la PEC2, un
+estudio probabilístico (a elección propia) de al menos 3 de las variables, que ayude
+a esclarecer cuestiones de relevancia que se plantean en los ámbitos de acción
+estudiados. 
+
+\newpage
+# Ejercicio 7 (1,5 punto) 
+
+Complementando el apartado anterior, elaborar un análisis ANOVA
+de dos conjuntos de variables (LAB5 y Ejercicio 6 de la PEC2). La elección de las
+variables, los resultados, así como su relación deben de estar correctamente
+justificada. Además, realizar un test clúster de las variables, y si existe un fuerte
+agrupamiento, elaborar un dendograma (LAB5).
+
+\newpage
+# Ejercicio 8 (1 punto) 
+
+A partir de los datos de origen y el estudio realizado (incluyendo todos
+los puntos anteriores), presentar un apartado de conclusiones. Esta sección debe
+incluir un resumen de los principales resultados obtenidos en apartados anteriores,
+que ayuden al lector a comprender el ámbito de estudio. Además, se valorará
+positivamente la coherencia de resultados y las justificaciones presentadas.
