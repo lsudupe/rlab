@@ -22,7 +22,7 @@ install.packages("faraway")
 ```{r, echo = FALSE}
 # Función para cargar todos los paquetes necesarios
 LoadLibraries <- function() {
-  myLibraries <- c("knitr", "ggplot2", "faraway")
+  myLibraries <- c("knitr", "ggplot2", "faraway", "corrplot", "sqldf")
   invisible(lapply(myLibraries, library, character.only = TRUE))
 }
 
@@ -176,11 +176,6 @@ colesterol_sd
 En el siguiente paso, vamos a comprobar la dependencia que tienen las variables entre si. Sabemos que todas las variables no son cuantitativas, por lo tanto, vamos a aislarlas en un vector y a continuación ver que correlación hay entre ellas.
 
 ```{r}
-str(data)
-```
-
-
-```{r}
 data_cuantitativa <- data[, c(1,2,3,4,5,6,8,12,15)] #Aislar los datos
 #A continuación, nombramos las columnas
 colnames(data_cuantitativa) <- c('Edad', 'Altura', 'Peso', 'P.sistolica', 'P.diastolica', 'Nivel colesterol', 'N/d cigarrillos', 'Tipo CHD', 'IMC')
@@ -194,13 +189,69 @@ En la matriz de correlaciones podemos ver que hay una alta correlación entre am
 
 Obtenemos una representación grafica de la correlación para un analisis mas visual de la misma.
 ```{r}
-install.packages("corrplot")
-library('corrplot')
 corrplot.mixed(correlación)
 ```
 
+Vamos a ver por ejemplo, el porcentaje de pacientes que tienen niveles de colesterol por encima de la media, dependiendo de si fuman o no
+```{r}
+
+chol_no_fumador <- 0
+chol_si_fumador <- 0
+
+for(i in 1:length(data$chol))
+  if (data$fumador[i]=="si") {
+    chol_si_fumador <- chol_si_fumador + 1
+  } else{
+    chol_no_fumador <- chol_no_fumador + 1
+  }
+
+porcentaje_chol_nofumador <-(chol_no_fumador/length(data$chol))*100
+porcentaje_chol_sifumador <-(chol_si_fumador/length(data$chol))*100
+porcentaje_chol_nofumador
+porcentaje_chol_sifumador
+```
+Curiosamente, observamos que el porcentaje esta muy igualado, siendo ligeramente mayor el porcentaje de pacientes que no fuma y tiene niveles de colesterol mas altos que la media
+
+Ahora, vamos a comprobar si este numero varia si tenemos en cuenta edades por encima de la media tambien.
+
+```{r}
+chol_no_fumador_edad <- 0
+chol_si_fumador_edad <-0
+
+for(i in 1:length(data$chol))
+  if (data$fumador[i]=="si"| data$age[i] > mean(data$age)) {
+    chol_si_fumador_edad <- chol_si_fumador_edad + 1
+  } else if (data$fumador[i]=="no" | data$age[i] > mean(data$age)) {
+    chol_no_fumador_edad <- chol_no_fumador_edad + 1
+  }
+
+porcentaje_chol_nofumador2<-(chol_no_fumador_edad/length(data$chol))*100
+porcentaje_chol_sifumador2<-(chol_si_fumador_edad/length(data$chol))*100
+porcentaje_chol_nofumador2
+porcentaje_chol_sifumador2
+```
+
+Vemos que si observamos la relación teniendo en cuenta la edad por encima de la media, hay un aumento considerable entre los pacientes que fuman y tienen niveles de colesterol altos
 
 
+Vamos a usar SQL para realizar algun analisis a los datos
+
+Vamos a mostrar los datos de colesterol de los pacientes que presentan una mancha en la pupila de forma descendente
+```{r}
+sqldf("SELECT chol FROM data where arcus = 'present' ORDER BY chol DESC")
+```
+
+Vemos que los niveles de colesterol altos muestran una mancha en la pupila, es una observación a tener en cuenta en la evaluación visual del paciente
+
+
+Ahora, veremos los los niveles de presion en pacientes que fuman una cantidad superior a 50 cigarros al dia y IMC superior a 24
+
+```{r}
+sqldf("SELECT sdp, dbp FROM data where cigs > 50 AND IMC > 24 ")
+```
+Los niveles obtenidos no estan por encima de la media, haciendo ver que estos factores influyen en ambas presiones.
+
+En esta sección hemos visualizado la correlación de las variables y mediante algun loop y SQL hemos verificado la misma.
 
 
 \newpage
