@@ -454,9 +454,35 @@ qqline(residuos) # dibujamos la reta en el gráfico anterior
 ```
 
 En la regresión lineal se asume que los residuos del modelo tienen una distribución normal. Se verifica con la gráfica Q-Q normal.
-Aunque se cumplan estan condiciones, vemos que no tiene porque existr una correlación alta entre las variables estudiadas. Para ver si podemos resolver parte del problema, realizaremos una regresión multivariante.
+Aunque se cumplan estan condiciones, vemos que no tiene porque existr una correlación alta entre las variables estudiadas. 
 
 
+Para ver si podemos resolver parte del problema, realizaremos una regresión multiple. Empezaremos calculando el coeficiente de correlación de Pearson para las distintas convinaciones. Lo hemos calculado con anterioridad, pero vamos a hacerlo de nuevo para este nuevo paso.
+```{r}
+correlación <- round(cor(data_cuantitativa, method = "pearson"), digits = 2)
+kable(correlación)
+```
+
+Como hemos apreciado antes, no hay mucha correlación entre las variables. Vamos a general el modelo de regresión múltiple añadiendo mas variables.
+
+```{r}
+mrm <- lm(data_cuantitativa$Colesterol
+          ~data_cuantitativa$Edad+data_cuantitativa$P.sis+data_cuantitativa$P.diast+data_cuantitativa$IMC+data_cuantitativa$`N/d cigarrillos`)
+summary(mrm)
+```
+Vemos que la determinación de "Multiple R-squared" es bastante baja como cabria esperar. Vamos a seleccionar los mejores entre todos los predictores
+```{r}
+step(object = mrm, direction = "both", trace=1)
+```
+Las variables que mejores resultados nos pueden dar como predictores son las que vemos en "Call". Realizamos el modelo de regresión multiple con los predictores seleccionados
+```{r}
+mrm_predictores <- (lm(formula = data_cuantitativa$Colesterol ~ data_cuantitativa$Edad + 
+    data_cuantitativa$P.diast + data_cuantitativa$IMC + data_cuantitativa$`N/d cigarrillos`))
+summary(mrm_predictores)
+```
+En este caso, hemos quitado la variable de presión sistolica. Aun asi, los datos obtenidos en la regresión multiple no han mejorado. 
+
+Aunque hayamos seleccionado variables que es sabido que aumentan las probabilidades de sufrir problemas de corazon y aumento de colesterol, no hemos podido verificarlo con los datos del estudio. Aun asi, esto nos puede servir para dar información sobre un mejor diseño de los pacientes del estudio. Variar la población en el rango de edad, hacer un estudio analogo con mujeres...
 
 
 
