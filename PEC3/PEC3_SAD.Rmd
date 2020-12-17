@@ -14,15 +14,12 @@ output:
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-```{r}
-install.packages("faraway")
-```
 
-
-```{r, echo = FALSE}
+```{r, echo = FALSE, message = FALSE}
 # Función para cargar todos los paquetes necesarios
 LoadLibraries <- function() {
-  myLibraries <- c("knitr", "ggplot2", "faraway", "corrplot", "sqldf")
+  myLibraries <- c("knitr", "ggplot2", "faraway", "sqldf", "corrplot", "tidyverse",
+                   "gridExtra", "PerformanceAnalytics")
   invisible(lapply(myLibraries, library, character.only = TRUE))
 }
 
@@ -157,16 +154,21 @@ tail(read.table("datos_wcgs.txt"))          # importamos y ver últimos registro
 
 **Con la Sección 2 de la PEC1 como base, elaborar y analizar una serie de cuestiones, que ayuden a explorar y a familiarizarse mejor con los datos de estudio. Además, en algunos casos, puede utilizarse la definición de funciones y el lenguaje SQL estudiado en el LAB3.**
 
-
 A continuación analizaremos los datos para poder vislumbrar el valor que pueden aportar las variables. Para ello, presentaremos una serie de observaciones y cuestiones sobre los mismos.
 
 Como se ha explicado anteriormente, el grupo de estudio correponde a un grupo de hombres. Vamos a hacernos una idea del grupo de estudio.
 
 Los datos estadisticos de todas las columnas
-```{r}
-summary(data)
+
+```{r, echo = FALSE}
+data$fumador <- as.factor(data$fumador)
+options(knitr.kable.NA = '')
+kable(summary(data[, 1:5]))
+kable(summary(data[, 6:10]))
+kable(summary(data[, 11:ncol(data)]))
 ```
-La edad, estatura y peso medios son 45 años, 1.78 cm y 77.1 kg. Como datos a tener en cuenta podemos ver que el nivel de colesterol serico en ayunas tiene un rango muy amplio, con un min de 103 y un max de 645. Este dato podemos contrastarlo mediante el calculo de la desviación estandar.
+
+La edad, estatura y peso medios son `r round(mean(data$age), 2)` años, `r round(mean(data$height), 2)` m y `r round(mean(data$weight), 2)` kg. Como datos a tener en cuenta podemos ver que el nivel de colesterol serico en ayunas tiene un rango muy amplio, con un min de 103 y un max de 645. Este dato podemos contrastarlo mediante el calculo de la desviación estandar.
 
 ```{r}
 colesterol_sd <- sd(data$chol)
@@ -178,23 +180,25 @@ En el siguiente paso, vamos a comprobar la dependencia que tienen las variables 
 ```{r}
 data_cuantitativa <- data[, c(1,2,3,4,5,6,8,12,15)] #Aislar los datos
 #A continuación, nombramos las columnas
-colnames(data_cuantitativa) <- c('Edad', 'Altura', 'Peso', 'P.sistolica', 'P.diastolica', 'Nivel colesterol', 'N/d cigarrillos', 'Tipo CHD', 'IMC')
+colnames(data_cuantitativa) <- c('Edad', 'Altura', 'Peso', 'P.sis', 'P.diast', 
+                                 'Colesterol', 'N/d cigarrillos', 'Tipo CHD', 'IMC')
 
 #Redondeamos el resultado
 correlación <- round(cor(data_cuantitativa), digits = 2)
-correlación
-
+kable(correlación)
 ```
-En la matriz de correlaciones podemos ver que hay una alta correlación entre ambas presiones. Tambien se aprecia una relación entre la IMC y ambas presiones. No tan llamativa pero tambien hay relación entre los niveles de colesterol serico y las presiones sistolica y diastolica
 
-Obtenemos una representación grafica de la correlación para un analisis mas visual de la misma.
+En la matriz de correlaciones podemos ver que hay una alta correlación entre ambas presiones. También se aprecia una relación entre el IMC y ambas presiones. No tan llamativa pero tambien hay relación entre los niveles de colesterol sérico y las presiones sistólica y diastólica. Además, como es de esperar el IMC está muy correlacionado con altura y peso ya que es una variable que se construye a partir de estas.
+
+Obtenemos una representación grafica de la correlación para un análisis mas visual de la misma. Este tema se tratará más en profundidad en el siguiente ejercicio de la PEC.
+
 ```{r}
 corrplot.mixed(correlación)
 ```
 
 Vamos a ver por ejemplo, el porcentaje de pacientes que tienen niveles de colesterol por encima de la media, dependiendo de si fuman o no
-```{r}
 
+```{r}
 chol_no_fumador <- 0
 chol_si_fumador <- 0
 
@@ -205,11 +209,12 @@ for(i in 1:length(data$chol))
     chol_no_fumador <- chol_no_fumador + 1
   }
 
-porcentaje_chol_nofumador <-(chol_no_fumador/length(data$chol))*100
-porcentaje_chol_sifumador <-(chol_si_fumador/length(data$chol))*100
+porcentaje_chol_nofumador <- (chol_no_fumador/length(data$chol))*100
+porcentaje_chol_sifumador <- (chol_si_fumador/length(data$chol))*100
 porcentaje_chol_nofumador
 porcentaje_chol_sifumador
 ```
+
 Curiosamente, observamos que el porcentaje esta muy igualado, siendo ligeramente mayor el porcentaje de pacientes que no fuma y tiene niveles de colesterol mas altos que la media
 
 Ahora, vamos a comprobar si este numero varia si tenemos en cuenta edades por encima de la media tambien.
@@ -225,30 +230,32 @@ for(i in 1:length(data$chol))
     chol_no_fumador_edad <- chol_no_fumador_edad + 1
   }
 
-porcentaje_chol_nofumador2<-(chol_no_fumador_edad/length(data$chol))*100
-porcentaje_chol_sifumador2<-(chol_si_fumador_edad/length(data$chol))*100
+porcentaje_chol_nofumador2 <- (chol_no_fumador_edad/length(data$chol))*100
+porcentaje_chol_sifumador2 <- (chol_si_fumador_edad/length(data$chol))*100
 porcentaje_chol_nofumador2
 porcentaje_chol_sifumador2
 ```
 
 Vemos que si observamos la relación teniendo en cuenta la edad por encima de la media, hay un aumento considerable entre los pacientes que fuman y tienen niveles de colesterol altos
 
+Vamos a usar SQL para realizar algún análisis a los datos.En este caso, vamos a estudiar los datos de colesterol de los pacientes que presentan una mancha en la pupila de forma descendente, solo los 6 primeros casos
 
-Vamos a usar SQL para realizar algun analisis a los datos
-
-Vamos a mostrar los datos de colesterol de los pacientes que presentan una mancha en la pupila de forma descendente
 ```{r}
-sqldf("SELECT chol FROM data where arcus = 'present' ORDER BY chol DESC")
+sqldf("SELECT chol 
+      FROM data 
+      WHERE arcus = 'present' 
+      ORDER BY chol DESC
+      LIMIT 6")
 ```
 
-Vemos que los niveles de colesterol altos muestran una mancha en la pupila, es una observación a tener en cuenta en la evaluación visual del paciente
-
+Se observa que los hombres con mancha en la pupila presentan niveles de colesterol altos, teniendo en cuenta que la media es de `r round(mean(data$chol), 2)`, es una observación a tener en cuenta en la evaluación visual del paciente.
 
 Ahora, veremos los los niveles de presion en pacientes que fuman una cantidad superior a 50 cigarros al dia y IMC superior a 24
 
 ```{r}
 sqldf("SELECT sdp, dbp FROM data where cigs > 50 AND IMC > 24 ")
 ```
+
 Los niveles obtenidos no estan por encima de la media, haciendo ver que estos factores influyen en ambas presiones.
 
 En esta sección hemos visualizado la correlación de las variables y mediante algun loop y SQL hemos verificado la misma.
@@ -260,7 +267,141 @@ En esta sección hemos visualizado la correlación de las variables y mediante a
 Realizar un análisis descriptivo de los datos. El análisis debe incluir (tal
 y como aparece en la Sección 3 de la PEC1) un resumen paramétrico de los datos
 y su representación gráfica, que mejor defina y complemente cada una de dichas
-variables
+variables.
+
+En el apartado anterior hemos presentado un resumen estadístico descriptivo de los principales parámetros de estos datos. En este ejercicio vamos a profundizar más en el dataset, incluyendo algunos gráficos interesantes para estudiar el comportamiento de las variables y poder extraer información útil.
+
+Empezamos haciendo un gráfico de dispersión entre las variables cuantitativas del dataset 2 a 2:
+
+```{r}
+pairs(data_cuantitativa)
+```
+Se observan las correlaciones entre algunas variables comentadas en el apartado anterior, como entre las variables que miden la presión por ejemplo. En este gráfico podemos deducir a primera vista que entre las variables `IMC` y la presión diastólica existe cierta relación, así que vamos a explorar de manera gráfica como se relacionan estas variables:
+
+```{r, echo = FALSE}
+mod_fum <- lm(data$dbp[data$fumador == "si"] ~ data$IMC[data$fumador == "si"])
+mod_nofum <- lm(data$dbp[data$fumador == "no"] ~ data$IMC[data$fumador == "no"])
+```
+
+
+```{r, fig.height = 7.5, fig.align = 'center'}
+par(mfrow=c(2, 1))
+plot(data$dbp ~ data$IMC, xlab = "IMC", ylab = "Presión diastólica mm Hg", 
+     col = "lightblue3"); abline(lm(data$dbp ~ data$IMC), lty=2)
+plot(data$dbp[data$fumador == "si"] ~ data$IMC[data$fumador == "si"], 
+     xlab = "IMC", ylab = "Presión diastólica mm Hg",
+     col = rgb(red = 0, green = 0, blue = 1, alpha = 0.5), pch = 2, cex.axis = 0.75,
+     cex = 0.75, las = 1)
+points(data$dbp[data$fumador == "no"] ~ data$IMC[data$fumador == "no"],
+       col = rgb(red = 1, green = 0, blue = 0, alpha = 0.5), cex = 0.75)
+abline(mod_fum, col = "blue"); abline(mod_nofum, col = "red", lty = 2)
+legend(10, 130,legend=c("no fumador", "fumador"), col=c("blue", "red"), pch = c(2, 1), 
+       cex = 0.8)
+```
+
+El primer gráfico muestra la relación a partir de todo el conjunto de datos y en el segundo hemos separado por la variable fumador para analizar si la relación entre las dos variables es homogénea entre los grupos. De entrada no parece haber mucha diferencia entre la relación de la presión y el IMC con el hecho de ser fumador o no. Lo que sí que observamos es que a mayor IMC también se espera tener una presión diasólica mayor y que para el grupo de fumadores esta relación está ligeramente magnificada. Las dos líneas adjuntas al gráfico representan la recta de un posible modelo lineal entre estas variables.
+
+Por otro lado, puede ser interesante estudiar los valores de colesterol según si el hombre es fumador. 
+
+```{r, fig.align = 'center', fig.width = 4.5, fig.height = 3.5}
+boxplot(data$chol ~ data$fumador, xlab = "Fumador", ylab = "Nivel de colesterol",
+        col = c(col = rgb(red = 0, green = 0, blue = 1, alpha = 0.45), 
+                col = rgb(red = 1, green = 0, blue = 0, alpha = 0.45)))
+```
+
+Tanto si el hombre es fumador como si no, la distribución del colesterol presenta algunos outliers. Además, para el grupo de fumadores el nivel de colesterol presenta valores mayores.
+
+En el apartado anterior deducimos que el hecho de tener una mancha en el arco senil (`arcus`) se debía a niveles más altos de colesterol, vamos a graficar también estas dos variables de manera conjunta para profundizar en esta relación. Nos ayudaremos con el paquete ggplot2.
+
+```{r, fig.align = 'center', fig.width = 4.5, fig.height = 3.5}
+data%>%
+ggplot(aes(x = chol, fill = arcus)) + geom_density(alpha=0.4) + 
+  scale_fill_manual(values=c("#999999", "#E69F00", "#56B4E9")) +
+  theme_classic() + theme(legend.position="top")
+```
+
+Se observa que la distribución del colesterol tiene forma de Normal para ambos grupos (se podría comprobar con algún test de normalidad) y además para el grupo de hombres que presenta arco seníl es más elevada. Podemos comprobarlo con un t-test.
+
+```{r}
+t.test(data$chol ~ data$arcus)
+```
+
+Concluimos que existen diferencias estadísticamente significativas entre las medias de cholesterol de los hombres con arco senil y sin él, siendo mayor el primero.
+
+Ahora vamos a centrarnos más en la variable de interés del estudio, que es el desarrollo de la enfermedad coronaria del corazón. Vamos a estudiar con que posibles variables puede estar relacionada su aparición.
+
+```{r, fig.height=8}
+grid.arrange(
+data%>%
+ggplot(aes(x = chol, fill = chd)) + geom_density(alpha=0.5) + 
+  scale_fill_manual(values=c("azure3", "red")) +
+  theme_classic() + theme(legend.position="top")
+,
+data%>%
+ggplot(aes(x = IMC, fill = chd)) + geom_density(alpha=0.5) + 
+  scale_fill_manual(values=c("azure3", "red")) +
+  theme_classic() + theme(legend.position="top")
+,
+data%>%
+ggplot(aes(x = cigs, fill = chd)) + geom_density(alpha=0.5) + 
+  scale_fill_manual(values=c("azure3", "red")) +
+  theme_classic() + theme(legend.position="top")
+,
+data%>%
+ggplot(aes(x = sdp, fill = chd)) + geom_density(alpha=0.5) + 
+  scale_fill_manual(values=c("azure3", "red")) +
+  theme_classic() + theme(legend.position="top")
+,
+data%>%
+ggplot(aes(x = dbp, fill = chd)) + geom_density(alpha=0.5) + 
+  scale_fill_manual(values=c("azure3", "red")) +
+  theme_classic() + theme(legend.position="top"),
+
+data%>%
+ggplot(aes(x = age, fill = chd)) + geom_density(alpha=0.5) + 
+  scale_fill_manual(values=c("azure3", "red")) +
+  theme_classic() + theme(legend.position="top"),
+ncol = 2
+)
+```
+
+Las variables que más se diferencian en la aparición/no aparición de CHD es la edad, las presiones sangíneas y el número de cigarrillos fumados.
+
+Procedemos a analizar que edades tienen los individuos de esta muestra, podemos hacerlo a partir de un diagrama de tallo y hojas. Como tenemos muchos registros, podemos seleccionar una muestra aleatoria de 500 personas para que el diagrama sea visualizable
+
+```{r}
+stem(sample(data$age, 500)) # Diagrama de tallo y hojas de la variable stem
+```
+
+Notamos que la edad se distribuye de forma decreciente (hay más jovenes que mayores). Seguramente se debe al tipo de trabajo que realizan los hombres de este estudio.
+
+Por otro lado, vamos a analizar los datos de manera más numérica mediante algunas tablas de frecuencias relativas y absolutas. Empezando por la variable `dibep`, tenemos:
+
+```{r}
+round(prop.table(table(data$dibep)), 3) # Frecuencias relativas
+```
+El número de hombres con comportamiento agresivo(A) y pasivo (B) es muy similar. Las podemos ver en frecuencias absolutas para ver a que número equivalen estos porcentajes:
+
+
+```{r}
+table(data$dibep) # Frecuencias absolutas
+```
+
+Además, podemos observar la tabla de frecuencias cruzadando las variables `fumador` y `diabep`
+
+```{r}
+prop.table(table(data$dibep, data$fumador))*100
+```
+Vemos que el grupo caracterizado por tener un comportamiento agresivo (A) tiene más probabilidad de tener individuos no fumadores.
+
+Y cruzando las variables `CHD` y `arcus`:
+
+```{r}
+prop.table(table(data$chd, data$arcus))*100
+```
+Se observa que en el grupo que tanto si se ha desarrollado el CHD como si no, es más frecuente no encontrar arco seníl, aunque en el grupo que sí tiene CHD la diferencia es menos clara. Es decir, que podríamos relacionar la aparición del arco senil con la enfermedad aunque pueden haber otros efectos confusores como la edad.
+
+En el contexto de este estudio sería interesante estimar un modelo lineal generalizado (logit) con respuesta binaria (0 no CHD, 1 CHD) pero no se ha visto en esta asignatura, así seleccionaremos alguna otra variable del dataset como variable respuesta y veremos con que variable predictora estimaríamos un buen modelo que tenga sentido.
 
 \newpage
 # Ejercicio 5 (1,5 punto) 
@@ -269,6 +410,59 @@ Complementando el apartado anterior, elaborar un análisis de
 regresión de dos conjuntos de variables (LAB2 y Ejercicio 6 de la PEC1). La
 elección de las variables, los resultados, así como su relación deben de estar
 correctamente justificada.
+
+
+En este apartado, vamos a realizar una regresión lineal y otra multiple. Para la regresión lineal, hemos elegido las variables de colesterol y edad.
+Vamos a ver primero la correlación existente entre ambas
+```{r}
+cor(data_cuantitativa$Edad, data_cuantitativa$Colesterol)
+var <- data.frame(data_cuantitativa$Edad, data_cuantitativa$Colesterol)
+chart.Correlation(var)
+```
+
+Vemos que hay una correlación pobre, tal vez debido a que la mayoria de pacientes del estudio tienen una edad baja. Hemos comprobado las demas variables y tambien tienen una baja correlación. El IMC y el peso tienen una correlación alta, pero porque el IMC se ha calculado a raiz del peso, por lo tanto, elegimos la Edad
+
+
+Vamos a realizar el modelo
+```{r}
+modelo <- lm(formula = data_cuantitativa$Colesterol ~ data_cuantitativa$Edad, data=data_cuantitativa)
+summary(modelo)
+
+```
+Vemos que el p-value esta por debajo de 0.05, podemos decir entonces que hay una asosiación estadistica significatica entre nuestras dos variables. Aun asi, no debemos perder de vista el "Multiple R-squared". este numero nos indica el pocentaje de variación en el colesterol que puede ser explicado mediante la edad del paciente. Si tenemos un valor alto explicaria mejor la relación entre las variables. En este caso, tenemos un valor muy bajo. Un rango mayor en la Edad de los pacientes nos ayudaria mas a vislumbrar la relación real entre la Edad y el colesterol. 
+
+El valor de "Residual standard error" nos da la distancia media que se alejan los puntos desde la linea de regresion. Cuanto mas bajo es el valor obsercado, mas se acerca nuestra linea de regresión a los valores observados. En nuestro caso, se alejan 5.496 puntos del valor predicho por la regresión.
+
+
+Vamos a ver nuestro modelo en un grafico
+```{r}
+plot(data_cuantitativa$Colesterol ~ data_cuantitativa$Edad, col="blue", xlab= "Edad", ylab="Colesterol", main="Recta regresión Edad y Colesterol")
+abline(modelo)
+```
+
+Mediante un analisis visual confirmamos la baja correlación entre nuestras variables. 
+
+
+Vamos a calcular los residuos del modelo ajustado anterior y realizaremos un gráfico de normalidad
+```{r}
+residuos<-rstandard(modelo) # residuos estándares del modelo ajustado
+par(mfrow=c(1,3))
+hist(residuos) # histograma de los residuos estandarizados
+boxplot(residuos) # diagrama de cajas de los residuos estandarizados
+qqnorm(residuos) # gráfico de cuantiles de los residuos estandarizados
+qqline(residuos) # dibujamos la reta en el gráfico anterior
+```
+
+En la regresión lineal se asume que los residuos del modelo tienen una distribución normal. Se verifica con la gráfica Q-Q normal.
+Aunque se cumplan estan condiciones, vemos que no tiene porque existr una correlación alta entre las variables estudiadas. Para ver si podemos resolver parte del problema, realizaremos una regresión multivariante.
+
+
+
+
+
+
+
+
 
 \newpage
 # Ejercicio 6 (1 punto) 
