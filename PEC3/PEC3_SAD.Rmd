@@ -3,13 +3,13 @@ title: "PEC 3"
 author: "authors"
 date: "Dic 14, 2020"
 output:
+  pdf_document:
+    toc: yes
+    toc_depth: 3
   html_document:
     toc: yes
     toc_depth: '3'
     df_print: paged
-  pdf_document:
-    toc: yes
-    toc_depth: 3
 ---
 
 \newpage
@@ -19,11 +19,13 @@ knitr::opts_chunk$set(echo = TRUE)
 ```
 
 
+
+
 ```{r, echo = FALSE, message = FALSE}
 # Función para cargar todos los paquetes necesarios
 LoadLibraries <- function() {
   myLibraries <- c("knitr", "ggplot2", "faraway", "sqldf", "corrplot", "tidyverse",
-                   "gridExtra", "PerformanceAnalytics")
+                   "gridExtra", "PerformanceAnalytics", "plotly")
   invisible(lapply(myLibraries, library, character.only = TRUE))
 }
 
@@ -429,7 +431,8 @@ Vemos que hay una correlación pobre, tal vez debido a que la mayoria de pacient
 
 Vamos a realizar el modelo
 ```{r}
-modelo <- lm(formula = data_cuantitativa$Colesterol ~ data_cuantitativa$Edad, data=data_cuantitativa)
+modelo <- lm(formula = data_cuantitativa$Colesterol ~ data_cuantitativa$Edad, 
+             data=data_cuantitativa)
 summary(modelo)
 
 ```
@@ -440,7 +443,8 @@ El valor de "Residual standard error" nos da la distancia media que se alejan lo
 
 Vamos a ver nuestro modelo en un grafico
 ```{r}
-plot(data_cuantitativa$Colesterol ~ data_cuantitativa$Edad, col="blue", xlab= "Edad", ylab="Colesterol", main="Recta regresión Edad y Colesterol")
+plot(data_cuantitativa$Colesterol ~ data_cuantitativa$Edad, col="blue", xlab= "Edad",
+     ylab="Colesterol", main="Recta regresión Edad y Colesterol")
 abline(modelo)
 ```
 
@@ -466,20 +470,24 @@ Para ver si podemos resolver parte del problema, realizaremos una regresión mul
 Como hemos apreciado antes, no hay mucha correlación entre las variables. Vamos a general el modelo de regresión múltiple añadiendo mas variables.
 
 ```{r}
-mrm <- lm(data$chol
-          ~data$age+data$weight+data$sdp+data$dbp+data$behave+data$cigs+data$dibep+data$chd+data$typechd+data$arcus+data$fumador+data$IMC)
+mrm <- lm(data$chol ~ data$age + data$weight + data$sdp + data$dbp + data$behave + 
+            data$cigs + data$dibep + data$chd + data$typechd + data$arcus + 
+            data$fumador + data$IMC)
 summary(mrm)
 ```
 Vemos que la determinación de "Multiple R-squared" es bastante baja como cabria esperar. Vamos a seleccionar los mejores entre todos los predictores
 ```{r}
 step(object = mrm, direction = "both", trace=1)
 ```
+
 Las variables que mejores resultados nos pueden dar como predictores son las que vemos en "Call". Realizamos el modelo de regresión multiple con los predictores seleccionados
+
 ```{r}
 mrm_predictores <- (lm(formula = data$chol ~ data$age + data$weight + data$dbp + 
     data$typechd + data$arcus + data$fumador + data$IMC + data$dibep))
 summary(mrm_predictores)
 ```
+
 En este caso, hemos reducido el numero de predictores. Aun asi, los datos obtenidos en la regresión multiple no han mejorado. 
 
 Aunque hayamos seleccionado variables que es sabido que aumentan las probabilidades de sufrir problemas de corazon y aumento de colesterol, no hemos podido verificarlo con los datos del estudio. Aun asi, esto nos puede servir para dar información sobre un mejor diseño de los pacientes del estudio. Variar la población en el rango de edad, hacer un estudio analogo con mujeres...
@@ -498,6 +506,139 @@ estudio probabilístico (a elección propia) de al menos 3 de las variables, que
 a esclarecer cuestiones de relevancia que se plantean en los ámbitos de acción
 estudiados. 
 
+Vamos a comenzar estudiando la variable `chol`. Podemos graficar un histograma para determinar a primera vista que tipo de distrribución puede seguir:
+
+```{r, fig.height = 4, fig.width = 5, fig.align = 'center'}
+hist(data$chol, main = "Histograma del Colesterol", xlab = "Colesterol", 
+     ylab = "Frecuencia", breaks = 50, col ="khaki2")
+```
+
+Podríamos decir que sigue una normal, con media y desviación:
+
+```{r}
+summary(data$chol)
+mean(data$chol)
+sd(data$chol)
+```
+
+Así que al histograma anterior podemos añadir la curva de la distribución normal con esos parámetros
+
+```{r, fig.height = 4, fig.width = 5, fig.align = 'center'}
+# calculamos el gráfico de la distribución para ver la forma
+hist(data$chol, freq = FALSE, main = "Histograma del colesterol", breaks = 50,
+     xlab = "Colesterol", ylab = "Densidad", col = "khaki2")
+
+# Superponemos una curva normal encima del histograma
+curve(dnorm(x, mean = mean(data$chol), sd = sd(data$chol)), from = 100, to = 400, 
+      add = TRUE, col = "red")
+```
+
+Se observa que la distribución está un poco desplazada a la izquierda, presenta esta asimetría, pero para el estudio supondremos que se trata de una normal. Además, con la ayuda de la función ecdf de la biblioteca estándar stepfun, podemos representar la función de distribución empírica
+de la muestra, es decir, una distribución a partir de estos datos que proporcione un cierto parecido a
+una distribución verdadera asociada con la población:
+
+```{r}
+par(mfrow = c(1,2))
+plot(ecdf(data$chol), main = "Distribución colesterol")
+plot(ecdf(rnorm(10000, mean = mean(data$chol), sd = sd(data$chol))), main = "Distribución Normal")
+```
+
+Se observa que la distirbución empírica de nuestros datos de colesterol (gráfico de la izquierda) tiene algún outlier pero aún así se parece bastante a la función de la derecha que se corresponde con una simulación de una variable distribuida según una normal con media `r mean(data$chol)` y desviación estándar `r sd(data$chol)`.
+
+Ahora que ya hemos supuesto el tipo de distribución que se corresponde a esta variable, podemos hacernos una serie de preguntas probabilísticas como:
+
+Que valor de colesterol deja por debajo al 95% de la población? O de otra manera, a partir de que valor de colesterol encontramos solo al 5% de la población?
+
+Estaríamos calculando $P(X<x)=0.95$ dónde la incógnita es encontrar el valor $x$.
+
+Con nuestros datos tendríamos:
+
+```{r}
+quantile(data$chol, 0.95)
+```
+
+Y con una $N(226.35, 43.42)$
+
+```{r}
+qnorm(0.95, mean = mean(data$chol), sd = sd(data$chol))
+```
+
+Vemos que para la distribución teórica el valor sería de 298 aproximadamente y para nuestros datos 302, son valores muy parecidos como ya intuíamos por la similaritud entre la distirbución empírica y la Normal. En términos de este estudio, podríamos catalogar a los individuos por encima de este valor de referencia como grupo de riesgo por tener el colesterol más alto al 95% de los hombres del estudio.
+
+Por otro lado, vamos a centrarnos en estudiar la variable de interés del estudio que es la aparición de la enfermedad coronaria. Como es una variable que toma dos valores (no, yes) se puede tratar como una distribución Binomial, de parámetros $n$ y $p$ que son respectivamente, según nuestros datos:
+
+```{r}
+p <- sum(data$chd=="yes")/nrow(data)
+n <- nrow(data)
+n;p
+```
+
+Es decir, tendríamos que: $X_{CHD}\sim Binomial(3140, 0.0812)$. Para comprobar si se parece a nuestra variable, podemos simular `r n` valores de esta distirbución y ver si el número de enfermos ($X=1$) se corresponde con el de la variable del dataset
+
+```{r}
+set.seed(123)
+# Generar n valores
+sum(rbinom(n, 1, p))
+
+# Enfermos de CHD reales
+table(data$chd)[2]
+```
+
+Ahora podemos hacernos una serie de preguntas. Por ejemplo, si queremos estimar cuantos pacientes van a ingresar en un hospital por la enfermedad del CHD, teniendo en cuenta que son de características similares a los hombres de nuestro estudio, cuantos pacientes ingresarán si hay un total de 1000 hombres en esta zona?
+
+En este caso, es suficiente con multiplicar $1000 \times p$
+
+```{r}
+1000*p
+```
+
+Entre 81 o 82 hombres ingresarán por CHD si hay 1000 hombres.
+
+Ahora imaginemos que en el hospital solo se pueden tratar a 9 personas que tengan esta enfermedad porque los recursos son limitados. Cual es la probabilidad de que, si en una zona donde viven 100 hombres como máximo haya 9 con esta enfermedad?
+
+Tenemos que estudiar $P(X\leq 9)$
+
+```{r}
+sum(dbinom(x = c(0:9), size = 100, prob = p))
+```
+
+La probabilidad es de 70% aproximadamente. También podemos ver como se distribuye en general la probabilidad de que $X=x$ y vemos lo siguiente:
+
+```{r, fig.height = 4, fig.width = 6, fig.align = 'center'}
+probs <- dbinom(x = 1:18, size = 100, prob = p)
+barplot(probs ~ c(1:18), xlab = "Enfermos de CHD", ylab= "Probabilidad", ylim=c(0,0.25),
+col="slategray3")
+abline(v = 10, col = "red")
+```
+
+Teniendo en cuenta este gráfico y la capacidad del hospital, vemos que en el mayor de los casos se podrá abastecer a los pacientes.
+
+Finalmente, vamos a estudiar y analizar la variable que muestra cuantos fumadores hay en este dataset. En este caso, diremos que la variable es $X\sim Poison(\lambda)$. La lambda la podemos definir como la media de hombres fumadores que trabajan en la empresa de la que se han extraido los datos. La podemos calcular como:
+
+```{r}
+table(data$fumador)[2]
+```
+
+Es decir, $X\sim Pois(1494)$. Podemos preguntarnos cual sería la probabilidad de que en otro momento se reduzca el número de fumadores a 1400 $P(X=1400)$:
+
+```{r}
+dpois(1400, 1494)
+```
+
+Vemos que la probabilidad es muy pequeña y cercana a 0.
+
+Podemos representar gráficamente como se distirbuye la probabilidad para todos los valores de $X$
+
+```{r, fig.height = 4, fig.width = 5, fig.align = 'center'}
+pois_probs <- dpois(1390:1590, 1494)
+plot(pois_probs~c(1390:1590), xlab = "Número de fumadores", ylab = "Probabilidad",
+     main = "Distribución de probabilidad")
+abline(v = 1400, col = "red")
+```
+
+Vemos que la probabilidad de que $X=1400$ es muy baja como ya habíamos calculado, y que las probabilidades más altas son las de los valores de $x$ cercanos a $\lambda$.
+
+
 \newpage
 # Ejercicio 7 (1,5 punto) 
 
@@ -506,6 +647,46 @@ de dos conjuntos de variables (LAB5 y Ejercicio 6 de la PEC2). La elección de l
 variables, los resultados, así como su relación deben de estar correctamente
 justificada. Además, realizar un test clúster de las variables, y si existe un fuerte
 agrupamiento, elaborar un dendograma (LAB5).
+
+
+La tecnica ANOVA se usa para comparar una variable cuantitatica en funcion de grupos y nos dice si esos grupos son estadisticamente distintos o no. Seria "variable cuantitativa = f(variable cualitativa)" o en nuestro caso compararemos estadisticamente si los tipos de CHD (coronary heart disease) desarrollados (angina, infdeath, none y silent) son estadísticamente diferentes en relación al IMC de los pacientes. Por lo tanto "nº IMC = f(Tipos de CHD)
+
+```{r}
+#Definiremos los vectores de ambas variables
+tipo_chd <- c(data$typechd)
+imc <- c(data$IMC)
+
+#Definimos un dataframe que guarde ambos vectores
+df_anova <- data.frame(tipo_chd,imc)
+df_anova$tipo_chd<-
+factor(df_anova$tipo_chd,levels=c(1,2,3,4),labels=c("angina","infdeath","none", "silent"))
+
+#Mostraremos el numero de observaciones por tipo CHD
+table(df_anova$tipo_chd)
+```
+Podemos observar que el numero de observaciónes es considerablemente distinto para algunos casos, esto significa que tenemos un modelo no-equilibrado. Hay que tenerlo en cuenta al comprobar la normalidad y homocedasticidad.
+
+Una vez que hemos definido nuestros conjuntos de variables en un data frame vamos a ver algunos descriptores de los mismos
+
+```{r}
+#Media de cigarrillos por tipo de CHD
+aggregate(imc~tipo_chd,data=df_anova,FUN=mean)
+```
+```{r}
+#Desviación típica de cigarrillos al dia por tipo de CHD
+aggregate(imc~tipo_chd,data=df_anova,FUN=sd)
+```
+Vamos a ver mediante una representación grafica de cajas si existen asimetrías o datos atípicos
+```{r}
+name1 <- names(df_anova)[2]
+name2 <- names(df_anova)[1]
+plot_ly(y = df_anova[,name1], x = df_anova[,name2], type = "box",name = name1, boxpoints = "all")%>%
+  layout(title = paste("Boxplot de IMC en relación al grupo de CHD "),yaxis = list(title = name1),xaxis = list(title = "Tipo CHD"))
+```
+
+Podemos apreciar mas valores atipicos en "none" tanto por encima como por debajo de sus limites. No tenemos una dispersión grande entre las distribuciones de nuestros datos. Por lo general, tambien podemos decir que tienen una distribución simetrica, tenemos un tamaño de las cajas similar, no habiendo indicios de no-homocedasticidad. Esto quiere decir, que la varianza del modelo respecto de las variables se mantiene constante. 
+
+
 
 \newpage
 # Ejercicio 8 (1 punto) 
