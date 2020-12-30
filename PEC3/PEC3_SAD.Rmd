@@ -25,7 +25,8 @@ knitr::opts_chunk$set(echo = TRUE)
 # Función para cargar todos los paquetes necesarios
 LoadLibraries <- function() {
   myLibraries <- c("knitr", "ggplot2", "faraway", "sqldf", "corrplot", "tidyverse",
-                   "gridExtra", "PerformanceAnalytics", "plotly", "nortest", "dplyr")
+                   "gridExtra", "PerformanceAnalytics", "plotly", "nortest", "dplyr",
+                   "cluster")
   invisible(lapply(myLibraries, library, character.only = TRUE))
 }
 
@@ -689,7 +690,7 @@ plot_ly(y = df_anova[,name1], x = df_anova[,name2], type = "box",name = name1, b
   layout(title = paste("Boxplot de IMC en relación al grupo de CHD "),yaxis = list(title = name1),xaxis = list(title = "Tipo CHD"))
 ```
 
-Podemos apreciar mas valores atipicos en "none" tanto por encima como por debajo de sus limites. No tenemos una dispersión grande entre las distribuciones de nuestros datos. Por lo general, tambien podemos decir que tienen una distribución simetrica, tenemos un tamaño de las cajas similar, no habiendo indicios de no-homocedasticidad. Esto quiere decir, que la varianza del modelo respecto de las variables se mantiene constante. 
+No tenemos una dispersión grande entre las distribuciones de nuestros datos. Por lo general, tambien podemos decir que tienen una distribución simetrica. Tenemos un tamaño de las cajas similar, no habiendo indicios de no-homocedasticidad. Esto quiere decir, que la varianza del modelo respecto de las variables se mantiene constante. 
 
 
 Verificamos las condiciones para un ANOVA. 
@@ -704,10 +705,59 @@ require(nortest)
 by(data=df_anova, INDICES = 
      df_anova$tipo_chd, FUN = function(x){lillie.test(x$imc)})
 ```
-El valor p-value es inferior a 0.05 en todos los casos menos en infdeath, por lo tanto, no tiene sentido seguir con el test ANOVA. Aun asi, vamos a seguir evaluando algunos resultados
+El valor p-value es inferior a 0.05 en el caso de angina y en silent, con este ultimo rozando el 0.05.Por lo tanto, no tiene sentido seguir con el test ANOVA. Aun asi, vamos a seguir evaluando algunos resultados
 
-Vamos a evaluar la varianza constante entre los grupos, que hemos mencionado antes. Como los resultados de la normalidad no son aceptables, usaremos el test de Levene
+Vamos a evaluar la varianza constante entre los grupos, que hemos mencionado antes. Como los resultados de la normalidad no son aceptables, usaremos el test de Levene.
+```{r}
+# Miramos igualdad de varianzas
+fligner.test(df_anova$imc~df_anova$tipo_chd,df_anova)
+```
 
+No hay falta de homocedasticidad, esto quiere decir, que en todos los grupos de datos la varianza del modelo respecto de las variables se mantiene constante. Vamos a proceder al estudio de ANOVA
+```{r}
+resultados_aov <- aov(imc ~ tipo_chd, data = df_anova)
+summary.aov(resultados_aov)
+      # En la última columna puedes ver el p-valor Pr(>F) y los asteriscos indicando
+      # el nivel de significancia: *** Muy significativo
+```
+No expresa diferencias significativas entre los grupos de valores
+```{r}
+par(mfrow=c(2,2))
+plot(resultados_aov)
+```
+Podemos ver si hay diferencias significativas entre dos grupos. Esto, podemos verlo mediante metodos de comparaciones múltiples y correcciones
+```{r}
+# La primera la categorica y la segunda la numerica
+pairwise.t.test(df_anova[,2], df_anova[,1],p.adjust.method = "BH")
+
+TukeyHSD(resultados_aov)
+```
+Si el p-valor (p adj) es menor que el 5% tenemos diferencias significaticas, no es nuestro caso
+
+Mediante el test ANOVA no hemos podido concluir que los grupos sean diferentes estadisticamente. La variable dependiente no determina  Tal y como se ha comentado anteriormente, esto nos hace ver que el diseño del muestreo tiene que mejorar en algun punto.  
+
+
+
+A continuación vamos a usar una tecnica de cluestering. Esto consiste en formar grupo lo más homogéneos posibles con la finalidad de crear patrones que ofrezcan información interesante. Hay varios metodos, nos vamos a centrar en el agrupamiento jerárquico aglomerativo. Asi consigueromos que cada observación sea un cluster que se ira organizando hasta converger en una ínica rama central.
+
+```{r}
+library(cluster)
+#Especificamos los valores de distancia
+dist_data <- dist(data, method = "euclidean")
+#Calculamos el cluster jerárquico
+hc_data <- hclust(dist_data, method = "complete")
+#Representamos el dendograma
+plot(hc_data, cex=0.8, hang=-1, main= "Dendograma del cluster de los datos de estudio CHD")
+#Visualización de los grupos mediante asociacion de datos
+rect.hclust(hc_data, k=3, border="blue")
+```
+Con la funcion agnes podemos obtenemos el coeficiente de aglomeración que indica el grado de fortaleza del agrupamiento
+
+```{r}
+hc_ag <- agnes(data, method = "complete")
+hc_ag$ac
+```
+Vemos que hay una fuerte agrupación en los datos
 
 
 
