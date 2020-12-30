@@ -3,13 +3,13 @@ title: "PEC 3"
 author: "authors"
 date: "Dic 14, 2020"
 output:
-  pdf_document:
-    toc: yes
-    toc_depth: 3
   html_document:
     toc: yes
     toc_depth: '3'
     df_print: paged
+  pdf_document:
+    toc: yes
+    toc_depth: 3
 ---
 
 \newpage
@@ -740,6 +740,14 @@ Mediante el test ANOVA no hemos podido concluir que los grupos sean diferentes e
 
 A continuación vamos a usar una tecnica de cluestering. Esto consiste en formar grupo lo más homogéneos posibles con la finalidad de crear patrones que ofrezcan información interesante. Hay varios metodos, nos vamos a centrar en el agrupamiento jerárquico aglomerativo. Asi consigueromos que cada observación sea un cluster que se ira organizando hasta converger en una ínica rama central.
 
+Con la funcion agnes podemos obtenemos el coeficiente de aglomeración que indica el grado de fortaleza del agrupamiento
+
+```{r}
+hc_ag <- agnes(data, method = "complete")
+hc_ag$ac
+```
+Vemos que hay una fuerte agrupación en los datos, por lo tanto, vamos a proceder a realizar el dendograma
+
 ```{r}
 library(cluster)
 #Especificamos los valores de distancia
@@ -749,15 +757,44 @@ hc_data <- hclust(dist_data, method = "complete")
 #Representamos el dendograma
 plot(hc_data, cex=0.8, hang=-1, main= "Dendograma del cluster de los datos de estudio CHD")
 #Visualización de los grupos mediante asociacion de datos
-rect.hclust(hc_data, k=3, border="blue")
+rect.hclust(hc_data, k=7, border=2:10)
 ```
-Con la funcion agnes podemos obtenemos el coeficiente de aglomeración que indica el grado de fortaleza del agrupamiento
+
+
+Hemos visto un cluster jerarquico, vamos a ver como metodo no jerarquico organiza los elementos en grupos según un número de clústeres definido de antemano, creando grupos homogéneos y teniendo en cuenta que ningún elemento puede pertenecer a más de un grupo. Usaremos el metodo k-means. Tenemos que elegir una variable objetivo, vamos a elegir tipo de CHD para ver como podemos completar con este metodo un test ANOVA.
+
+Para ello primero vamos a quitar el grupo de "none", como hemos realizado el test anova. Con esto buscamos centrarnos en el grupo de pacientes que esten enfermos
+```{r}
+
+df_jerarquico <- data[data$typechd != "none",]
+#Realizamos un grafico de dispersion segun la variable tipo chd
+pairs(df_jerarquico, col=df_jerarquico$typechd)
+
+#Hace falta que los datos sean numericos
+df_jerarquico <- data[, c(1,2,3,4,5,6,8,11,15)] #Aislar los datos
+#A continuación, nombramos las columnas
+colnames(df_jerarquico) <- c('Edad', 'Altura', 'Peso', 'P.sis', 'P.diast', 
+                                 'Colesterol', 'N/d cigarrillos', 'Tipo CHD', 'IMC')
+#vamos a ver la correlación entre el resto de variables
+df_jerarquico <- df_jerarquico[df_jerarquico$'Tipo CHD' != "none",]
+
+df_jerarquico$'Tipo CHD'<-
+factor(df_jerarquico$'Tipo CHD',levels=c("angina","infdeath", "silent"),labels=c(1,2,4))
+
+df_jerarquico$'Tipo CHD' <- as.numeric(as.character(df_jerarquico$'Tipo CHD'))
+
+
+
+```
 
 ```{r}
-hc_ag <- agnes(data, method = "complete")
-hc_ag$ac
+corr <- cor(df_jerarquico)
+corr
 ```
-Vemos que hay una fuerte agrupación en los datos
+Con la correlación se puede ver que variables pueden aportar mas informació para la formación de grupos, pero en este dataframe de estudio desde el principio hemos observado una pobre correlación que hemos achacado al muestreo de los pacientes como hemos mencionado con anterioridad. Aunque teniamos intención de hace el cluster no jerarquico para tener mas vision de las agrupaciones posibles, el hecho de tener unas correlaciónes tan pobres hace que decidamos que no tiene utilidad.
+
+
+```
 
 
 
