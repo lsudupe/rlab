@@ -25,7 +25,7 @@ knitr::opts_chunk$set(echo = TRUE)
 # Función para cargar todos los paquetes necesarios
 LoadLibraries <- function() {
   myLibraries <- c("knitr", "ggplot2", "faraway", "sqldf", "corrplot", "tidyverse",
-                   "gridExtra", "PerformanceAnalytics", "plotly")
+                   "gridExtra", "PerformanceAnalytics", "plotly", "nortest", "dplyr")
   invisible(lapply(myLibraries, library, character.only = TRUE))
 }
 
@@ -652,14 +652,19 @@ agrupamiento, elaborar un dendograma (LAB5).
 La tecnica ANOVA se usa para comparar una variable cuantitatica en funcion de grupos y nos dice si esos grupos son estadisticamente distintos o no. Seria "variable cuantitativa = f(variable cualitativa)" o en nuestro caso compararemos estadisticamente si los tipos de CHD (coronary heart disease) desarrollados (angina, infdeath, none y silent) son estadísticamente diferentes en relación al IMC de los pacientes. Por lo tanto "nº IMC = f(Tipos de CHD)
 
 ```{r}
+
 #Definiremos los vectores de ambas variables
 tipo_chd <- c(data$typechd)
 imc <- c(data$IMC)
 
 #Definimos un dataframe que guarde ambos vectores
 df_anova <- data.frame(tipo_chd,imc)
+
+#Vamos a descartar a los no-enfermos
+df_anova <- df_anova[df_anova$tipo_chd != 3,]
+
 df_anova$tipo_chd<-
-factor(df_anova$tipo_chd,levels=c(1,2,3,4),labels=c("angina","infdeath","none", "silent"))
+factor(df_anova$tipo_chd,levels=c(1,2,4),labels=c("angina","infdeath", "silent"))
 
 #Mostraremos el numero de observaciones por tipo CHD
 table(df_anova$tipo_chd)
@@ -685,6 +690,24 @@ plot_ly(y = df_anova[,name1], x = df_anova[,name2], type = "box",name = name1, b
 ```
 
 Podemos apreciar mas valores atipicos en "none" tanto por encima como por debajo de sus limites. No tenemos una dispersión grande entre las distribuciones de nuestros datos. Por lo general, tambien podemos decir que tienen una distribución simetrica, tenemos un tamaño de las cajas similar, no habiendo indicios de no-homocedasticidad. Esto quiere decir, que la varianza del modelo respecto de las variables se mantiene constante. 
+
+
+Verificamos las condiciones para un ANOVA. 
+
+La variable cuantitativa debe de distribuirse de forma normal en cada grupo. Podemos realizar este estudio de forma gráfica o con test de hipotesis.
+
+```{r}
+#Realizamos un estudio de la normalidad con el Test Kolmogorov-Simirnov dado que la muestra es superior a las 50 observaciones
+
+require(nortest)
+
+by(data=df_anova, INDICES = 
+     df_anova$tipo_chd, FUN = function(x){lillie.test(x$imc)})
+```
+El valor p-value es inferior a 0.05 en todos los casos menos en infdeath, por lo tanto, no tiene sentido seguir con el test ANOVA. Aun asi, vamos a seguir evaluando algunos resultados
+
+Vamos a evaluar la varianza constante entre los grupos, que hemos mencionado antes. Como los resultados de la normalidad no son aceptables, usaremos el test de Levene
+
 
 
 
