@@ -684,10 +684,13 @@ aggregate(imc~tipo_chd,data=df_anova,FUN=sd)
 ```
 Vamos a ver mediante una representación gráfica de cajas si existen asimetrías o datos atípicos.
 ```{r}
-name1 <- names(df_anova)[2]
-name2 <- names(df_anova)[1]
-plot_ly(y = df_anova[,name1], x = df_anova[,name2], type = "box",name = name1, boxpoints = "all")%>%
-  layout(title = paste("Boxplot de IMC en relación al grupo de CHD "),yaxis = list(title = name1),xaxis = list(title = "Tipo CHD"))
+boxplot(df_anova$imc ~ df_anova$tipo_chd,
+        main = "Boxplot de IMC en relación al grupo de CHD",
+        ylab = "Imc",
+        xlab = "Tipo CHD",
+        col = rainbow(6, alpha=0.2),
+        border = rainbow(6, v=0.6)
+        )
 ```
 
 No tenemos una dispersión grande entre las distribuciones de nuestros datos. Por lo general, también podemos decir que tienen una distribución simétrica. Tenemos un tamaño de las cajas similar, no habiendo indicios de no-homocedasticidad. Esto quiere decir, que la varianza del modelo respecto de las variables se mantiene constante. 
@@ -762,16 +765,15 @@ No hay un equilibrio en los clusters. Esto se puede deber a alguna variable que 
 Hemos visto un cluster jerárquico, vamos a ver como método no jerárquico organiza los elementos en grupos según un número de clústeres definido de antemano, creando grupos homogéneos y teniendo en cuenta que ningún elemento puede pertenecer a más de un grupo. Usaremos el método k-means. Tenemos que elegir una variable objetivo, vamos a elegir tipo de CHD para ver cómo podemos completar con este método un test ANOVA.
 
 Para ello primero vamos a quitar el grupo de "none", como hemos realizado el test anova. Con esto buscamos centrarnos en el grupo de pacientes que estén enfermos.
-```{r}
 
+```{r}
 df_jerarquico <- data[data$typechd != "none",]
-#Realizamos un gráfico de dispersión según la variable tipo chd
-pairs(df_jerarquico, col=df_jerarquico$typechd)
+
 
 #Hace falta que los datos sean númericos
-df_jerarquico <- data[, c(1,2,3,4,5,6,8,11,15)] #Aislar los datos
+df_jerarquico <- data[, c(1,4,5,6,8,11,15)] #Aislar los datos
 #A continuación, nombramos las columnas
-colnames(df_jerarquico) <- c('Edad', 'Altura', 'Peso', 'P.sis', 'P.diast', 
+colnames(df_jerarquico) <- c('Edad', 'P.sis', 'P.diast', 
                                  'Colesterol', 'N/d cigarrillos', 'Tipo CHD', 'IMC')
 #vamos a ver la correlación entre el resto de variables
 df_jerarquico <- df_jerarquico[df_jerarquico$'Tipo CHD' != "none",]
@@ -781,8 +783,10 @@ factor(df_jerarquico$'Tipo CHD',levels=c("angina","infdeath", "silent"),labels=c
 
 df_jerarquico$'Tipo CHD' <- as.numeric(as.character(df_jerarquico$'Tipo CHD'))
 
-
+#Realizamos un gráfico de dispersión según la variable tipo chd
+pairs(df_jerarquico, col=df_jerarquico$'Tipo CHD')
 ```
+
 
 ```{r}
 corr <- cor(df_jerarquico)
