@@ -1,0 +1,61 @@
+---
+title: "Inferencia PEC2"
+author: "Laura Sudupe"
+date: "5/1/2021"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+```{r, echo = FALSE, message = FALSE}
+# Función para cargar todos los paquetes necesarios
+LoadLibraries <- function() {
+  myLibraries <- c("foreign")
+  invisible(lapply(myLibraries, library, character.only = TRUE))
+}
+
+LoadLibraries()
+```
+
+
+```{r}
+(set.seed(99991)) # Sustituye ###### por un número
+
+dades <- as.data.frame(read.dta("data_admission.dta"))
+
+dades900 <- dades[sample(1:nrow(dades),900,replace=FALSE),]
+
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
