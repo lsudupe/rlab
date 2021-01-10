@@ -1,0 +1,824 @@
+---
+title: "PEC 3"
+author: "Andrea Sanchez Rodriguez, Laura Sudupe Medinilla"
+date: "Dic 14, 2020"
+output:
+  pdf_document:
+    toc: yes
+    toc_depth: 3
+  html_document:
+    toc: yes
+    toc_depth: '3'
+    df_print: paged
+---
+
+\newpage
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+```{r, echo = FALSE, message = FALSE}
+# Función para cargar todos los paquetes necesarios
+LoadLibraries <- function() {
+  myLibraries <- c("knitr", "ggplot2", "faraway", "sqldf", "corrplot", "tidyverse",
+                   "gridExtra", "PerformanceAnalytics", "plotly", "nortest", "dplyr",
+                   "cluster")
+  invisible(lapply(myLibraries, library, character.only = TRUE))
+}
+
+LoadLibraries()
+```
+
+
+El objetivo de la PEC es elaborar un análisis estadístico en R de un caso práctico con
+datos de obtención propia (pertenecientes a un determinado ámbito), lo más ajustado a la
+realidad. A continuación, podéis encontrar una serie de pautas para su realización: 
+
+# Ejercicio 1 (1 punto) 
+
+**Buscar un conjunto de datos relacionados con la Bioestadística o la Bioinformática. Posibles recursos bibliográficos son aquellos presentados en la PEC1, por ejemplo: http://www.bioinformatics.org/sms2/index.html; o bien http://biostat.mc.vanderbilt.edu/wiki/Main/DataSets. También es posible utilizar fuentes propias o de interés, siempre teniendo en cuenta que sean datos públicos para los usuarios. Será necesario especificar la procedencia y la justificación de la elección de los datos. **
+
+Los datos seleccionados para esta PEC proceden del package `faraway` de `R`. Son del Western Collaborative Group Study. Se trata de un dataset con nombre `wcgs` de 3145 hombres de entre 39 y 59 años de San Francisco. Todos ellos estaban libres de padecer una enfermadad coronaria y lo que se ha hecho es evaluar pasados 10 años si esta situación había cambiado a la vez que se midieron algunas características físicas y clínicas de estos hombres.
+
+Más concretamente, el WCGS comenzó en 1960 con 3.524 voluntarios varones que eran empleados de 11 empresas de California. Los sujetos tenían entre 39 y 59 años y no tenían enfermedad cardíaca según lo determinado por un electrocardiograma. Después de la selección inicial, la población del estudio se redujo a 3154 y el número de empresas a 10 debido a diversas exclusiones. La cohorte estaba compuesta por empleados de dos grupos. Como línea base se recopiló la siguiente información: sociodemográfica, incluida la edad, la educación, el estado civil, los ingresos, la ocupación; físico y fisiológico, incluyendo altura, peso, presión arterial, electrocardiograma y arco corneal; bioquímicos que incluyen fracciones de colesterol y lipoproteínas; antecedentes médicos y familiares y uso de medicamentos; datos de comportamiento que incluyen entrevistas tipo A, tabaquismo, ejercicio y consumo de alcohol. Las encuestas posteriores agregaron datos sobre antropometría, triglicéridos, encuesta de actividad de Jenkins y uso de cafeína. El seguimiento promedio continuó durante 8.5 años con exámenes repetidos.
+
+Este conjunto de datos puede ser útil para estudiar que variables influyen en la aparición de esta enfermedad, el CHD.
+
+```{r, echo = FALSE}
+data <- wcgs
+rownames(data) <- c(1:nrow(data))
+```
+
+\newpage
+# Ejercicio 2 (1 punto) 
+
+**Utilizando R, mostrar y explicar qué tipo de ficheros se han importado, las variables de estudio (tipo, clasificación, ...), así como todo aquello relevante para el estudio. Incluir capturas de pantalla y las instrucciones en R utilizadas para importar y mostrar los datos. **
+
+Este estudio consta de `r ncol(data)` variables. Estas son algunas medidas físicas y clínicas de un conjunto de `r nrow(data)` hombres. Una descripción más detallada de estas es:
+
+* age: edad en años
+* height: altura en pulgadas
+* weight: peso en libras 
+* sdp: presión sistólica en mm Hg
+* dbp: presión diastólica en mm Hg
+* chol: nivel de colesterol sérico en ayunas
+* behave: tipo de comportamiento (niveles 'A1', 'A2', 'A3', 'A4')?
+* cigs: número diario de cigarrillos fumados
+* dibep: tipo de comportamiento con niveles 'A' (Agresivo) y 'B' (pasivo)
+* chd: si ha desarrollado CHD(coronary heart disease), tiene niveles 'no' y 'yes'
+* typechd: tipo de CHD desarrollado, tiene niveles 'angina', 'infdeath', 'none', 'silent'
+* timechd: tiempo hasta que se ha desarrollado el CHD (cuanto se detectó) o finalización del seguimiento
+* arcus: arco senil (mancha en la pupila), tiene niveles 'absent' 'present'.
+
+Los primeros registros del dataset se muestran a continuación:
+
+```{r}
+head(data)
+```
+
+Algunas características del dataset y sus variables son:
+
+```{r}
+dim(data) # número de filas y columnas
+str(data) # estructura de las variables
+```
+
+Podemos comprobar si existen valores faltantes en el conjunto de datos:
+
+```{r}
+sum(is.na(data))    # comprobar datos missing
+```
+
+Vemos que hay `r sum(is.na(data))` datos faltantes. Podemos eliminar las filas que los contengan y seguir con ese nuevo conjunto de datos para el estudio. Las nuevas dimensiones del dataset son:
+
+```{r}
+data <- na.omit(data) # filtro dataset sin NA
+dim(data)
+```
+
+Además, podemos crear una nueva variable `fumador`, que será un factor que toma valores 'si' y 'no',  a partir de la información de la variable `cigs`:
+
+```{r}
+data$fumador <- ifelse(data$cigs>0, "si", "no") # creación variable fumador
+table(data$fumador)
+```
+
+Vemos que el `r round(sum(data$fumador=="si")/nrow(data), 3) * 100`% de los hombres del estudio son fumadores.
+
+Por otro lado, podemos transformar a otras unidades (m y kg) las variables `height` y `weight` con las siguientes funciones y crear la variable `IMC`, a partir de la fórmula $IMC=\frac{kg}{m^2}$:
+
+```{r}
+# Funciones cambio de unidades:
+
+to_m <- function(variable){
+  new_units <- variable / 39.370
+  return(new_units)
+}
+
+to_kg <- function(variable){
+  new_units <- variable / 2.2046
+  return(new_units)
+}
+```
+
+```{r}
+# Transformación unidades
+data$height <- to_m(data$height)
+data$weight <- to_kg(data$weight)
+
+# Nueva variable IMC
+data$IMC <- data$weight/data$height^2
+```
+
+
+En este caso no ha sido necesario importar ningún fichero de datos porque este dataset ya viene incorporado en R. Por este motivo vamos a mostrar como exportaríamos los datos a ficheros .csv y .txt. Los exportamos sin indicar directorio así que se guardaran en la carpeta de trabajo que tengamos configurada al ejecutar este script.
+
+* .csv
+
+```{r}
+write.csv(data, file = "datos_wcgs.csv")  # exportar a .csv
+tail(read.csv("datos_wcgs.csv"))          # importar y ver últimos registros
+```
+
+* .txt
+
+```{r}
+write.table(data, file = "datos_wcgs.txt")  # exportar a .txt
+tail(read.table("datos_wcgs.txt"))          # importamos y ver últimos registros
+```
+
+\newpage
+
+# Ejercicio 3 (2 puntos) 
+
+**Con la Sección 2 de la PEC1 como base, elaborar y analizar una serie de cuestiones, que ayuden a explorar y a familiarizarse mejor con los datos de estudio. Además, en algunos casos, puede utilizarse la definición de funciones y el lenguaje SQL estudiado en el LAB3.**
+
+A continuación, analizaremos los datos para poder vislumbrar el valor que pueden aportar las variables. Para ello, presentaremos una serie de observaciones y cuestiones sobre los mismos.
+
+Como se ha explicado anteriormente, el grupo de estudio corresponde a un grupo de hombres. Vamos a hacernos una idea del grupo de estudio.
+
+Los datos estadísticos de todas las columnas
+
+```{r, echo = FALSE}
+data$fumador <- as.factor(data$fumador)
+options(knitr.kable.NA = '')
+kable(summary(data[, 1:5]))
+kable(summary(data[, 6:10]))
+kable(summary(data[, 11:ncol(data)]))
+```
+
+La edad, estatura y peso medios son `r round(mean(data$age), 2)` años, `r round(mean(data$height), 2)` m y `r round(mean(data$weight), 2)` kg. Como datos a tener en cuenta podemos ver que el nivel de colesterol sérico en ayunas tiene un rango muy amplio, con un min de 103 y un max de 645. Este dato podemos contrastarlo mediante el cálculo de la desviación estándar.
+
+```{r}
+colesterol_sd <- sd(data$chol)
+colesterol_sd
+```
+
+En el siguiente paso, vamos a comprobar la dependencia que tienen las variables entre sí. Sabemos que todas las variables no son cuantitativas, por lo tanto, vamos a aislarlas en un vector y a continuación ver que correlación hay entre ellas.
+
+```{r}
+data_cuantitativa <- data[, c(1,2,3,4,5,6,8,12,15)] #Aislar los datos
+#A continuación, nombramos las columnas
+colnames(data_cuantitativa) <- c('Edad', 'Altura', 'Peso', 'P.sis', 'P.diast', 
+                                 'Colesterol', 'N/d cigarrillos', 'Tipo CHD', 'IMC')
+
+#Redondeamos el resultado
+correlación <- round(cor(data_cuantitativa), digits = 2)
+kable(correlación)
+```
+
+En la matriz de correlaciones podemos ver que hay una alta correlación entre ambas presiones. También se aprecia una relación entre el IMC y ambas presiones. No tan llamativa, pero también hay relación entre los niveles de colesterol sérico y las presiones sistólica y diastólica. Además, como es de esperar el IMC está muy correlacionado con altura y peso ya que es una variable que se construye a partir de estas.
+
+Obtenemos una representación gráfica de la correlación para un análisis más visual de la misma. Este tema se tratará más en profundidad en el siguiente ejercicio de la PEC.
+
+```{r}
+corrplot.mixed(correlación)
+```
+
+Vamos a ver por ejemplo, el porcentaje de pacientes que tienen niveles de colesterol por encima de la media, dependiendo de si fuman o no.
+
+```{r}
+chol_no_fumador <- 0
+chol_si_fumador <- 0
+
+
+
+for(i in 1:length(data$chol))
+  if (data$fumador[i]=="si"&& (data$chol[i] > mean(data$chol))) {
+    chol_si_fumador <- chol_si_fumador + 1
+  } else if (data$fumador[i]=="no" && (data$chol[i] > mean(data$chol))) {
+    chol_no_fumador <- chol_no_fumador + 1
+  }
+
+porcentaje_chol_nofumador <- (chol_no_fumador/length(data$chol[data$chol>mean(data$chol)]))*100
+porcentaje_chol_sifumador <- (chol_si_fumador/length(data$chol[data$chol>mean(data$chol)]))*100
+porcentaje_chol_nofumador
+porcentaje_chol_sifumador
+```
+
+Vemos que para los sujetos del estudio con colesterol superior a la media, el 48% no son fumadores y el 52% sí lo son. Es decir, los fumadores presentan valores de colesterol ligeramente superiores.
+
+Ahora, vamos a comprobar si este número varia si tenemos en cuenta edades por encima de la media también.
+
+```{r}
+chol_no_fumador_edad <- 0
+chol_si_fumador_edad <-0
+
+for(i in 1:length(data$chol))
+  if (data$fumador[i]=="si"&& (data$age[i] > mean(data$age))) {
+    chol_si_fumador_edad <- chol_si_fumador_edad + 1
+  } else if (data$fumador[i]=="no" && (data$age[i] > mean(data$age))) {
+    chol_no_fumador_edad <- chol_no_fumador_edad + 1
+  }
+
+porcentaje_chol_nofumador2 <- (chol_no_fumador_edad/length(data$chol[data$age>mean(data$age)]))*100
+porcentaje_chol_sifumador2 <- (chol_si_fumador_edad/length(data$chol[data$age>mean(data$age)]))*100
+porcentaje_chol_nofumador2
+porcentaje_chol_sifumador2
+```
+
+Vemos que no hay mucha diferencia entre ser fumador y no serlo, teniendo en cuenta los hombres que están por encima de la media de edad. Puede que en este estudio no sea relevante pero si hubiesemos obtenido porcentajes más distantes indicaría que sí que hay una relación a tener en cuenta.
+
+Vamos a usar SQL para realizar algún análisis a los datos. En este caso, vamos a estudiar los datos de colesterol de los pacientes que presentan una mancha en la pupila de forma descendente, solo los 6 primeros casos.
+
+```{r}
+sqldf("SELECT chol 
+      FROM data 
+      WHERE arcus = 'present' 
+      ORDER BY chol DESC
+      LIMIT 6")
+```
+
+Se observa que los hombres con mancha en la pupila presentan niveles de colesterol altos, teniendo en cuenta que la media es de `r round(mean(data$chol), 2)`, es una observación a tener en cuenta en la evaluación visual del paciente.
+
+Ahora, veremos los niveles de presión en pacientes que fuman una cantidad superior a 50 cigarros al día y IMC superior a 24.
+
+```{r}
+sqldf("SELECT sdp, dbp FROM data where cigs > 50 AND IMC > 24 ")
+```
+
+Los niveles obtenidos no están por encima de la media, haciendo ver que estos factores influyen en ambas presiones.
+
+En esta sección hemos visualizado la correlación de las variables y mediante algún loop y SQL hemos verificado la misma.
+
+
+\newpage
+# Ejercicio 4 (1 punto) 
+
+Realizar un análisis descriptivo de los datos. El análisis debe incluir (tal
+y como aparece en la Sección 3 de la PEC1) un resumen paramétrico de los datos
+y su representación gráfica, que mejor defina y complemente cada una de dichas
+variables.
+
+En el apartado anterior hemos presentado un resumen estadístico descriptivo de los principales parámetros de estos datos. En este ejercicio vamos a profundizar más en el dataset, incluyendo algunos gráficos interesantes para estudiar el comportamiento de las variables y poder extraer información útil.
+
+Empezamos haciendo un gráfico de dispersión entre las variables cuantitativas del dataset 2 a 2:
+
+```{r}
+pairs(data_cuantitativa)
+```
+Se observan las correlaciones entre algunas variables comentadas en el apartado anterior, como entre las variables que miden la presión por ejemplo. En este gráfico podemos deducir a primera vista que entre las variables `IMC` y la presión diastólica existe cierta relación, así que vamos a explorar de manera gráfica como se relacionan estas variables:
+
+```{r, echo = FALSE}
+mod_fum <- lm(data$dbp[data$fumador == "si"] ~ data$IMC[data$fumador == "si"])
+mod_nofum <- lm(data$dbp[data$fumador == "no"] ~ data$IMC[data$fumador == "no"])
+```
+
+
+```{r, fig.height = 7.5, fig.align = 'center'}
+par(mfrow=c(2, 1))
+plot(data$dbp ~ data$IMC, xlab = "IMC", ylab = "Presión diastólica mm Hg", 
+     col = "lightblue3"); abline(lm(data$dbp ~ data$IMC), lty=2)
+plot(data$dbp[data$fumador == "si"] ~ data$IMC[data$fumador == "si"], 
+     xlab = "IMC", ylab = "Presión diastólica mm Hg",
+     col = rgb(red = 0, green = 0, blue = 1, alpha = 0.5), pch = 2, cex.axis = 0.75,
+     cex = 0.75, las = 1)
+points(data$dbp[data$fumador == "no"] ~ data$IMC[data$fumador == "no"],
+       col = rgb(red = 1, green = 0, blue = 0, alpha = 0.5), cex = 0.75)
+abline(mod_fum, col = "blue"); abline(mod_nofum, col = "red", lty = 2)
+legend(10, 130,legend=c("no fumador", "fumador"), col=c("blue", "red"), pch = c(2, 1), 
+       cex = 0.8)
+```
+
+El primer gráfico muestra la relación a partir de todo el conjunto de datos y en el segundo hemos separado por la variable fumador para analizar si la relación entre las dos variables es homogénea entre los grupos. De entrada, no parece haber mucha diferencia entre la relación de la presión y el IMC con el hecho de ser fumador o no. Lo que sí que observamos es que a mayor IMC también se espera tener una presión diastólica mayor y que para el grupo de fumadores esta relación está ligeramente magnificada. Las dos líneas adjuntas al gráfico representan la recta de un posible modelo lineal entre estas variables.
+
+Por otro lado, puede ser interesante estudiar los valores de colesterol según si el hombre es fumador. 
+
+```{r, fig.align = 'center', fig.width = 4.5, fig.height = 3.5}
+boxplot(data$chol ~ data$fumador, xlab = "Fumador", ylab = "Nivel de colesterol",
+        col = c(col = rgb(red = 0, green = 0, blue = 1, alpha = 0.45), 
+                col = rgb(red = 1, green = 0, blue = 0, alpha = 0.45)))
+```
+
+Tanto si el hombre es fumador como si no, la distribución del colesterol presenta algunos outliers. Además, para el grupo de fumadores el nivel de colesterol presenta valores mayores.
+
+En el apartado anterior deducimos que el hecho de tener una mancha en el arco senil (`arcus`) se debía a niveles más altos de colesterol, vamos a graficar también estas dos variables de manera conjunta para profundizar en esta relación. Nos ayudaremos con el paquete ggplot2.
+
+```{r, fig.align = 'center', fig.width = 4.5, fig.height = 3.5}
+data%>%
+ggplot(aes(x = chol, fill = arcus)) + geom_density(alpha=0.4) + 
+  scale_fill_manual(values=c("#999999", "#E69F00", "#56B4E9")) +
+  theme_classic() + theme(legend.position="top")
+```
+
+Se observa que la distribución del colesterol tiene forma de Normal para ambos grupos (se podría comprobar con algún test de normalidad) y además para el grupo de hombres que presenta arco senil es más elevada. Podemos comprobarlo con un t-test.
+
+```{r}
+t.test(data$chol ~ data$arcus)
+```
+
+Concluimos que existen diferencias estadísticamente significativas entre las medias de cholesterol de los hombres con arco senil y sin él, siendo mayor el primero.
+
+Ahora vamos a centrarnos más en la variable de interés del estudio, que es el desarrollo de la enfermedad coronaria del corazón. Vamos a estudiar con que posibles variables puede estar relacionada su aparición.
+
+```{r, fig.height=8}
+grid.arrange(
+data%>%
+ggplot(aes(x = chol, fill = chd)) + geom_density(alpha=0.5) + 
+  scale_fill_manual(values=c("azure3", "red")) +
+  theme_classic() + theme(legend.position="top")
+,
+data%>%
+ggplot(aes(x = IMC, fill = chd)) + geom_density(alpha=0.5) + 
+  scale_fill_manual(values=c("azure3", "red")) +
+  theme_classic() + theme(legend.position="top")
+,
+data%>%
+ggplot(aes(x = cigs, fill = chd)) + geom_density(alpha=0.5) + 
+  scale_fill_manual(values=c("azure3", "red")) +
+  theme_classic() + theme(legend.position="top")
+,
+data%>%
+ggplot(aes(x = sdp, fill = chd)) + geom_density(alpha=0.5) + 
+  scale_fill_manual(values=c("azure3", "red")) +
+  theme_classic() + theme(legend.position="top")
+,
+data%>%
+ggplot(aes(x = dbp, fill = chd)) + geom_density(alpha=0.5) + 
+  scale_fill_manual(values=c("azure3", "red")) +
+  theme_classic() + theme(legend.position="top"),
+
+data%>%
+ggplot(aes(x = age, fill = chd)) + geom_density(alpha=0.5) + 
+  scale_fill_manual(values=c("azure3", "red")) +
+  theme_classic() + theme(legend.position="top"),
+ncol = 2
+)
+```
+
+Las variables que más se diferencian en la aparición/no aparición de CHD es la edad, las presiones sanguíneas y el número de cigarrillos fumados.
+
+Procedemos a analizar que edades tienen los individuos de esta muestra, podemos hacerlo a partir de un diagrama de tallo y hojas. Como tenemos muchos registros, podemos seleccionar una muestra aleatoria de 500 personas para que el diagrama sea visualizable.
+
+```{r}
+stem(sample(data$age, 500)) # Diagrama de tallo y hojas de la variable stem
+```
+
+Notamos que la edad se distribuye de forma decreciente (hay más jovenes que mayores). Seguramente se debe al tipo de trabajo que realizan los hombres de este estudio.
+
+Por otro lado, vamos a analizar los datos de manera más numérica mediante algunas tablas de frecuencias relativas y absolutas. Empezando por la variable `dibep`, tenemos:
+
+```{r}
+round(prop.table(table(data$dibep)), 3) # Frecuencias relativas
+```
+El número de hombres con comportamiento agresivo(A) y pasivo (B) es muy similar. Las podemos ver en frecuencias absolutas para ver a que número equivalen estos porcentajes:
+
+
+```{r}
+table(data$dibep) # Frecuencias absolutas
+```
+
+Además, podemos observar la tabla de frecuencias cruzadando las variables `fumador` y `diabep`
+
+```{r}
+prop.table(table(data$dibep, data$fumador))*100
+```
+Vemos que el grupo caracterizado por tener un comportamiento agresivo (A) tiene más probabilidad de tener individuos no fumadores.
+
+Y cruzando las variables `CHD` y `arcus`:
+
+```{r}
+prop.table(table(data$chd, data$arcus))*100
+```
+Se observa que en el grupo que tanto si se ha desarrollado el CHD como si no, es más frecuente no encontrar arco senil, aunque en el grupo que sí tiene CHD la diferencia es menos clara. Es decir, que podríamos relacionar la aparición del arco senil con la enfermedad, aunque pueden haber otros efectos confusores como la edad.
+
+En el contexto de este estudio sería interesante estimar un modelo lineal generalizado (logit) con respuesta binaria (0 no CHD, 1 CHD) pero no se ha visto en esta asignatura, así seleccionaremos alguna otra variable del dataset como variable respuesta y veremos con que variable predictora estimaríamos un buen modelo que tenga sentido.
+
+\newpage
+# Ejercicio 5 (1,5 punto) 
+
+Complementando el apartado anterior, elaborar un análisis de
+regresión de dos conjuntos de variables (LAB2 y Ejercicio 6 de la PEC1). La
+elección de las variables, los resultados, así como su relación deben de estar
+correctamente justificada.
+
+
+En este apartado, vamos a realizar una regresión lineal y otra múltiple. Para la regresión lineal, hemos elegido las variables de colesterol y edad.
+Vamos a ver primero la correlación existente entre ambas.
+```{r}
+cor(data_cuantitativa$Edad, data_cuantitativa$Colesterol)
+var <- data.frame(data_cuantitativa$Edad, data_cuantitativa$Colesterol)
+chart.Correlation(var)
+```
+
+Vemos que hay una correlación pobre, tal vez debido a que la mayoría de pacientes del estudio tienen una edad baja. Hemos comprobado las demás variables y también tienen una baja correlación. El IMC y el peso tienen una correlación alta, pero porque el IMC se ha calculado a raíz del peso, por lo tanto, elegimos la Edad.
+
+
+Vamos a realizar el modelo
+```{r}
+modelo <- lm(formula = data_cuantitativa$Colesterol ~ data_cuantitativa$Edad, 
+             data=data_cuantitativa)
+summary(modelo)
+
+```
+Vemos que el p-value está por debajo de 0.05, podemos decir entonces que hay una asociación estadística significativa entre nuestras dos variables. Aun asi, no debemos perder de vista el "Multiple R-squared". Este número nos indica el pocentaje de variación en el colesterol que puede ser explicado mediante la edad del paciente. Si tenemos un valor alto explicaría mejor la relación entre las variables. En este caso, tenemos un valor muy bajo. Un rango mayor en la edad de los pacientes nos ayudaría más a vislumbrar la relación real entre la Edad y el colesterol. 
+
+El valor de "Residual standard error" nos da la distancia media que se alejan los puntos desde la línea de regresión. Cuanto más bajo es el valor observado, más se acerca nuestra línea de regresión a los valores observados. En nuestro caso, se alejan 5.496 puntos del valor predicho por la regresión.
+
+
+Vamos a ver nuestro modelo en un grafico.
+```{r}
+plot(data_cuantitativa$Colesterol ~ data_cuantitativa$Edad, col="blue", xlab= "Edad",
+     ylab="Colesterol", main="Recta regresión Edad y Colesterol")
+abline(modelo)
+```
+
+Mediante un análisis visual confirmamos la baja correlación entre nuestras variables. 
+
+
+Vamos a calcular los residuos del modelo ajustado anterior y realizaremos un gráfico de normalidad.
+```{r}
+residuos<-rstandard(modelo) # residuos estándares del modelo ajustado
+par(mfrow=c(1,3))
+hist(residuos) # histograma de los residuos estandarizados
+boxplot(residuos) # diagrama de cajas de los residuos estandarizados
+qqnorm(residuos) # gráfico de cuantiles de los residuos estandarizados
+qqline(residuos) # dibujamos la reta en el gráfico anterior
+```
+
+En la regresión lineal se asume que los residuos del modelo tienen una distribución normal. Se puede verificar con la gráfica Q-Q normal.
+Se cumplan o no estas condiciones, vemos que no tiene porque existir una correlación alta entre las variables estudiadas. 
+
+
+Para ver si podemos resolver parte del problema, realizaremos una regresión múltiple.
+
+Como hemos apreciado antes, no hay mucha correlación entre las variables. Vamos a general el modelo de regresión múltiple añadiendo más variables.
+
+```{r}
+mrm <- lm(data$chol ~ data$age + data$weight + data$sdp + data$dbp + data$behave + 
+            data$cigs + data$dibep + data$chd + data$typechd + data$arcus + 
+            data$fumador + data$IMC)
+summary(mrm)
+```
+Vemos que la determinación de "Multiple R-squared" es bastante baja como cabría esperar. Vamos a seleccionar los mejores entre todos los predictores.
+```{r}
+step(object = mrm, direction = "both", trace=1)
+```
+
+Las variables que mejores resultados nos pueden dar como predictores son las que vemos en "Call". Realizamos el modelo de regresión múltiple con los predictores seleccionados.
+
+```{r}
+mrm_predictores <- (lm(formula = data$chol ~ data$age + data$weight + data$dbp + 
+    data$typechd + data$arcus + data$fumador + data$IMC + data$dibep))
+summary(mrm_predictores)
+```
+
+En este caso, hemos reducido el numero de predictores. Aun así, los datos obtenidos en la regresión múltiple no han mejorado. 
+
+Aunque hayamos seleccionado variables que es sabido que aumentan las probabilidades de sufrir problemas de corazón y aumento de colesterol, no hemos podido verificarlo con los datos del estudio. Aun así, esto nos puede servir para dar información sobre un mejor diseño de los pacientes del estudio. Variar la población en el rango de edad, hacer un estudio análogo con mujeres...
+
+
+
+
+
+
+
+\newpage
+# Ejercicio 6 (1 punto) 
+
+Realizar, a partir de los conceptos trabajados en el LAB4 y la PEC2, un
+estudio probabilístico (a elección propia) de al menos 3 de las variables, que ayude
+a esclarecer cuestiones de relevancia que se plantean en los ámbitos de acción
+estudiados. 
+
+Vamos a comenzar estudiando la variable `chol`. Podemos graficar un histograma para determinar a primera vista que tipo de distribución puede seguir:
+
+```{r, fig.height = 4, fig.width = 5, fig.align = 'center'}
+hist(data$chol, main = "Histograma del Colesterol", xlab = "Colesterol", 
+     ylab = "Frecuencia", breaks = 50, col ="khaki2")
+```
+
+Podríamos decir que sigue una normal, con media y desviación:
+
+```{r}
+summary(data$chol)
+mean(data$chol)
+sd(data$chol)
+```
+
+Así que al histograma anterior podemos añadir la curva de la distribución normal con esos parámetros
+
+```{r, fig.height = 4, fig.width = 5, fig.align = 'center'}
+# calculamos el gráfico de la distribución para ver la forma
+hist(data$chol, freq = FALSE, main = "Histograma del colesterol", breaks = 50,
+     xlab = "Colesterol", ylab = "Densidad", col = "khaki2")
+
+# Superponemos una curva normal encima del histograma
+curve(dnorm(x, mean = mean(data$chol), sd = sd(data$chol)), from = 100, to = 400, 
+      add = TRUE, col = "red")
+```
+
+Se observa que la distribución está un poco desplazada a la izquierda, presenta esta asimetría, pero para el estudio supondremos que se trata de una normal. Además, con la ayuda de la función ecdf de la biblioteca estándar stepfun, podemos representar la función de distribución empírica
+de la muestra, es decir, una distribución a partir de estos datos que proporcione un cierto parecido a
+una distribución verdadera asociada con la población:
+
+```{r}
+par(mfrow = c(1,2))
+plot(ecdf(data$chol), main = "Distribución colesterol")
+plot(ecdf(rnorm(10000, mean = mean(data$chol), sd = sd(data$chol))), main = "Distribución Normal")
+```
+
+Se observa que la distribución empírica de nuestros datos de colesterol (gráfico de la izquierda) tiene algún outlier pero aun así se parece bastante a la función de la derecha que se corresponde con una simulación de una variable distribuida según una normal con media `r mean(data$chol)` y desviación estándar `r sd(data$chol)`.
+
+Ahora que ya hemos supuesto el tipo de distribución que se corresponde a esta variable, podemos hacernos una serie de preguntas probabilísticas como:
+
+Que valor de colesterol deja por debajo al 95% de la población? O de otra manera, a partir de que valor de colesterol encontramos solo al 5% de la población?
+
+Estaríamos calculando $P(X<x)=0.95$ dónde la incógnita es encontrar el valor $x$.
+
+Con nuestros datos tendríamos:
+
+```{r}
+quantile(data$chol, 0.95)
+```
+
+Y con una $N(226.35, 43.42)$
+
+```{r}
+qnorm(0.95, mean = mean(data$chol), sd = sd(data$chol))
+```
+
+Vemos que para la distribución teórica el valor sería de 298 aproximadamente y para nuestros datos 302, son valores muy parecidos como ya intuíamos por la similitud entre la distribución empírica y la Normal. En términos de este estudio, podríamos catalogar a los individuos por encima de este valor de referencia como grupo de riesgo por tener el colesterol más alto al 95% de los hombres del estudio.
+
+Por otro lado, vamos a centrarnos en estudiar la variable de interés del estudio que es la aparición de la enfermedad coronaria. Como es una variable que toma dos valores (no, yes) se puede tratar como una distribución Binomial, de parámetros $n$ y $p$ que son respectivamente, según nuestros datos:
+
+```{r}
+p <- sum(data$chd=="yes")/nrow(data)
+n <- nrow(data)
+n;p
+```
+
+Es decir, tendríamos que: $X_{CHD}\sim Binomial(3140, 0.0812)$. Para comprobar si se parece a nuestra variable, podemos simular `r n` valores de esta distribución y ver si el número de enfermos ($X=1$) se corresponde con el de la variable del dataset.
+
+```{r}
+set.seed(123)
+# Generar n valores
+sum(rbinom(n, 1, p))
+
+# Enfermos de CHD reales
+table(data$chd)[2]
+```
+
+Ahora podemos hacernos una serie de preguntas. Por ejemplo, si queremos estimar cuantos pacientes van a ingresar en un hospital por la enfermedad del CHD, teniendo en cuenta que son de características similares a los hombres de nuestro estudio, ¿cuántos pacientes ingresarán si hay un total de 1000 hombres en esta zona?
+
+En este caso, es suficiente con multiplicar $1000 \times p$
+
+```{r}
+1000*p
+```
+
+Entre 81 o 82 hombres ingresarán por CHD si hay 1000 hombres.
+
+Ahora imaginemos que en el hospital solo se pueden tratar a 9 personas que tengan esta enfermedad porque los recursos son limitados. Cual es la probabilidad de que, si en una zona donde viven 100 hombres como máximo haya 9 con esta enfermedad?
+
+Tenemos que estudiar $P(X\leq 9)$
+
+```{r}
+sum(dbinom(x = c(0:9), size = 100, prob = p))
+```
+
+La probabilidad es de 70% aproximadamente. También podemos ver como se distribuye en general la probabilidad de que $X=x$ y vemos lo siguiente:
+
+```{r, fig.height = 4, fig.width = 6, fig.align = 'center'}
+probs <- dbinom(x = 1:18, size = 100, prob = p)
+barplot(probs ~ c(1:18), xlab = "Enfermos de CHD", ylab= "Probabilidad", ylim=c(0,0.25),
+col="slategray3")
+abline(v = 10, col = "red")
+```
+
+Teniendo en cuenta este gráfico y la capacidad del hospital, vemos que en el mayor de los casos se podrá abastecer a los pacientes.
+
+Finalmente, vamos a estudiar y analizar la variable que muestra cuantos fumadores hay en este dataset. En este caso, diremos que la variable es $X\sim Poison(\lambda)$. La lambda la podemos definir como la media de hombres fumadores que trabajan en la empresa de la que se han extraído los datos. La podemos calcular como:
+
+```{r}
+table(data$fumador)[2]
+```
+
+Es decir, $X\sim Pois(1494)$. Podemos preguntarnos cual sería la probabilidad de que en otro momento se reduzca el número de fumadores a 1400 $P(X=1400)$:
+
+```{r}
+dpois(1400, 1494)
+```
+
+Vemos que la probabilidad es muy pequeña y cercana a 0.
+
+Podemos representar gráficamente como se distribuye la probabilidad para todos los valores de $X$
+
+```{r, fig.height = 4, fig.width = 5, fig.align = 'center'}
+pois_probs <- dpois(1390:1590, 1494)
+plot(pois_probs~c(1390:1590), xlab = "Número de fumadores", ylab = "Probabilidad",
+     main = "Distribución de probabilidad")
+abline(v = 1400, col = "red")
+```
+
+Vemos que la probabilidad de que $X=1400$ es muy baja como ya habíamos calculado, y que las probabilidades más altas son las de los valores de $x$ cercanos a $\lambda$.
+
+
+\newpage
+# Ejercicio 7 (1,5 punto) 
+
+Complementando el apartado anterior, elaborar un análisis ANOVA
+de dos conjuntos de variables (LAB5 y Ejercicio 6 de la PEC2). La elección de las
+variables, los resultados, así como su relación deben de estar correctamente
+justificada. Además, realizar un test clúster de las variables, y si existe un fuerte
+agrupamiento, elaborar un dendograma (LAB5).
+
+
+La técnica ANOVA se usa para comparar una variable cuantitativa en función de grupos y nos dice si esos grupos son estadísticamente distintos o no. Seria "variable cuantitativa = f(variable cualitativa)" o en nuestro caso compararemos estadísticamente si los tipos de CHD (coronary heart disease) desarrollados (angina, infdeath, none y silent) son estadísticamente diferentes en relación al IMC de los pacientes. Por lo tanto "nº IMC = f(Tipos de CHD)
+
+```{r}
+
+#Definiremos los vectores de ambas variables
+tipo_chd <- c(data$typechd)
+imc <- c(data$IMC)
+
+#Definimos un dataframe que guarde ambos vectores
+df_anova <- data.frame(tipo_chd,imc)
+
+#Vamos a descartar a los no-enfermos
+df_anova <- df_anova[df_anova$tipo_chd != 3,]
+
+df_anova$tipo_chd<-
+factor(df_anova$tipo_chd,levels=c(1,2,4),labels=c("angina","infdeath", "silent"))
+
+#Mostraremos el numero de observaciones por tipo CHD
+table(df_anova$tipo_chd)
+```
+
+Podemos observar que el número de observaciones es considerablemente distinto para algunos casos, esto significa que tenemos un modelo no-equilibrado. Hay que tenerlo en cuenta al comprobar la normalidad y homocedasticidad.
+
+Una vez que hemos definido nuestros conjuntos de variables en un dataframe vamos a ver algunos descriptores de los mismos.
+
+```{r}
+#Media de cigarrillos por tipo de CHD
+aggregate(imc~tipo_chd,data=df_anova,FUN=mean)
+```
+
+
+```{r}
+#Desviación típica de cigarrillos al dia por tipo de CHD
+aggregate(imc~tipo_chd,data=df_anova,FUN=sd)
+```
+
+Vamos a ver mediante una representación gráfica de cajas si existen asimetrías o datos atípicos.
+
+```{r}
+boxplot(df_anova$imc ~ df_anova$tipo_chd,
+        main = "Boxplot de IMC en relación al grupo de CHD",
+        ylab = "Imc",
+        xlab = "Tipo CHD",
+        col = rainbow(6, alpha=0.2),
+        border = rainbow(6, v=0.6)
+        )
+```
+
+No tenemos una dispersión grande entre las distribuciones de nuestros datos. Por lo general, también podemos decir que tienen una distribución simétrica. Tenemos un tamaño de las cajas similar, no habiendo indicios de no-homocedasticidad. Esto quiere decir, que la varianza del modelo respecto de las variables se mantiene constante. 
+
+Verificamos las condiciones para un ANOVA. 
+
+La variable cuantitativa debe de distribuirse de forma normal en cada grupo. Podemos realizar este estudio de forma gráfica o con test de hipótesis.
+
+```{r}
+#Realizamos un estudio de la normalidad con el Test Kolmogorov-Simirnov dado que la muestra es superior a las 50 observaciones
+
+require(nortest)
+
+by(data=df_anova, INDICES = 
+     df_anova$tipo_chd, FUN = function(x){lillie.test(x$imc)})
+```
+
+El valor p-value es inferior a 0.05 en el caso de angina y en silent, con este último rozando el 0.05.Por lo tanto, no tiene sentido seguir con el test ANOVA. Aun así, vamos a seguir evaluando algunos resultados
+
+Vamos a evaluar la varianza constante entre los grupos, que hemos mencionado antes. Como los resultados de la normalidad no son aceptables, usaremos el test de Levene.
+
+```{r}
+# Miramos igualdad de varianzas
+fligner.test(df_anova$imc~df_anova$tipo_chd,df_anova)
+```
+
+No hay falta de homocedasticidad, esto quiere decir, que en todos los grupos de datos la varianza del modelo respecto de las variables se mantiene constante. Vamos a proceder al estudio de ANOVA.
+
+```{r}
+resultados_aov <- aov(imc ~ tipo_chd, data = df_anova)
+summary.aov(resultados_aov)
+```
+
+No expresa diferencias significativas entre los grupos de valores.
+
+```{r}
+par(mfrow=c(2,2))
+plot(resultados_aov)
+```
+
+Si la ANOVA hubiese resultado con un p-valor inferior a 0.05, podríamos estudiar si hay diferencias significativas entre dos grupos. Esto, podemos verlo mediante métodos de comparaciones múltiples y correcciones y se haría de la siguiente manera:
+
+```{r}
+# La primera la categórica y la segunda la númerica
+pairwise.t.test(df_anova[,2], df_anova[,1],p.adjust.method = "BH")
+
+TukeyHSD(resultados_aov)
+```
+
+Si el p-valor (p adj) es menor que el 5% tenemos diferencias significativas, no es nuestro caso como ya veíamos a partir de la ANOVA.
+
+Mediante el test ANOVA no hemos podido concluir que los grupos sean diferentes estadísticamente. La variable dependiente no determina a que grupo pertenece, tal y como se ha comentado anteriormente, esto nos hace ver que el diseño del muestreo tiene que mejorar en algún punto.  
+
+A continuación, vamos a usar una técnica de clustering. Esto consiste en formar grupo lo más homogéneos posibles con la finalidad de crear patrones que ofrezcan información interesante. Hay varios métodos, nos vamos a centrar en el agrupamiento jerárquico aglomerativo. Así conseguiremos que cada observación sea un cluster que se ira organizando hasta converger en una única rama central.
+
+Con la función agnes podemos obtenemos el coeficiente de aglomeración que indica el grado de fortaleza del agrupamiento.
+
+```{r}
+hc_ag <- agnes(data, method = "complete")
+hc_ag$ac
+```
+
+Vemos que hay una fuerte agrupación en los datos, por lo tanto, vamos a proceder a realizar el dendograma.
+
+```{r}
+#Especificamos los valores de distancia
+dist_data <- dist(data, method = "euclidean")
+#Calculamos el cluster jerárquico
+hc_data <- hclust(dist_data, method = "complete")
+#Representamos el dendograma
+plot(hc_data, cex=0.8, hang=-1, main= "Dendograma del cluster de los datos de estudio CHD")
+#Visualización de los grupos mediante asociación de datos
+rect.hclust(hc_data, k=7, border=2:10)
+```
+
+No hay un equilibrio en los clusters. Esto se puede deber a alguna variable que tenga muchos valores dispersos.
+
+Hemos visto un cluster jerárquico, vamos a ver como método no jerárquico organiza los elementos en grupos según un número de clústeres definido de antemano, creando grupos homogéneos y teniendo en cuenta que ningún elemento puede pertenecer a más de un grupo. Usaremos el método k-means. Tenemos que elegir una variable objetivo, vamos a elegir tipo de CHD para ver cómo podemos completar con este método un test ANOVA.
+
+Para ello primero vamos a quitar el grupo de "none", como hemos realizado el test anova. Con esto buscamos centrarnos en el grupo de pacientes que estén enfermos.
+
+```{r}
+df_jerarquico <- data[data$typechd != "none",]
+
+#Hace falta que los datos sean númericos
+df_jerarquico <- data[, c(1,4,5,6,8,11,15)] #Aislar los datos
+#A continuación, nombramos las columnas
+colnames(df_jerarquico) <- c('Edad', 'P.sis', 'P.diast', 
+                                 'Colesterol', 'N/d cigarrillos', 'Tipo CHD', 'IMC')
+#vamos a ver la correlación entre el resto de variables
+df_jerarquico <- df_jerarquico[df_jerarquico$'Tipo CHD' != "none",]
+
+df_jerarquico$'Tipo CHD'<-
+factor(df_jerarquico$'Tipo CHD',levels=c("angina","infdeath", "silent"),labels=c(1,2,4))
+
+df_jerarquico$'Tipo CHD' <- as.numeric(as.character(df_jerarquico$'Tipo CHD'))
+
+#Realizamos un gráfico de dispersión según la variable tipo chd
+pairs(df_jerarquico, col=df_jerarquico$'Tipo CHD')
+```
+
+
+```{r}
+corr <- cor(df_jerarquico)
+corr
+```
+
+Con la correlación se puede ver que variables pueden aportar más información para la formación de grupos, pero en este dataframe de estudio desde el principio hemos observado una pobre correlación que hemos achacado al muestreo de los pacientes como hemos mencionado con anterioridad. Aunque teníamos intención de hace el cluster no jerárquico para tener más visión de las agrupaciones posibles, el hecho de tener unas correlaciones tan pobres hace que decidamos que no tiene utilidad.
+
+
+
+\newpage
+# Ejercicio 8 (1 punto) 
+
+A partir de los datos de origen y el estudio realizado (incluyendo todos
+los puntos anteriores), presentar un apartado de conclusiones. Esta sección debe
+incluir un resumen de los principales resultados obtenidos en apartados anteriores,
+que ayuden al lector a comprender el ámbito de estudio. Además, se valorará
+positivamente la coherencia de resultados y las justificaciones presentadas.
+
+
+Al hacer un análisis descriptivo de los datos, los principales estadísticos nos indican que el rango de edad de los pacientes del estudio no es muy disperso. Además, con el diagrama de tallo y hojas vemos que se concentra entre los 39-44 años y la edad se distribuye de forma decreciente (hay más jóvenes que mayores). Seguramente se debe al tipo de trabajo que realizan los hombres de este estudio. Esto ya nos da una vista preliminar de que el estudio es para un grupo concreto de la población. Al haber creado una variable `IMC` a partir del peso y la altura, hay una estrecha correlación entre ellas. Por lo tanto, no nos hemos centrado en estudiar las relaciones entre estas variables a lo largo del estudio.
+
+Con la herramienta SQL hemos observado que los hombres con mancha en la pupila presentan niveles de colesterol altos, teniendo en cuenta que la media es de 226.35, es una observación a tener en cuenta en la evaluación visual del paciente. Además mediante la visualización gráfica concluimos que existen diferencias entre las medias de cholesterol de los hombres con arco senil y sin él, siendo mayor el primero. Con la tabla de contingencia cruzada verificamos que en el grupo que tanto si se ha desarrollado el CHD como si no, es más frecuente no encontrar arco senil, aunque en el grupo que sí tiene CHD la diferencia es menos clara. En conclusión, podemos relacionar la aparición del arco senil con la enfermedad, aunque puede haber otros efectos confusores como la edad. Las variables que más se diferencian en la aparición/no aparición de CHD es la edad, las presiones sanguíneas y el número de cigarrillos fumados. 
+
+Mediante el análisis de regresión lineal simple podemos decir que hay una asociación estadística significativa entre nuestras dos variables (colesterol en función de la edad) aunque el valor de $R^2$ sea muy pequeño. Un rango mayor en la edad de los pacientes nos ayudaría más a vislumbrar la relación real entre la Edad y el colesterol. Con la regresión múltiple y seleccionando las variables con el método step seguimos obteniendo muchas variables significativas, pero con el coeficiente de determinación muy bajo. Aunque hayamos seleccionado variables que es sabido que aumentan la concentración de colesterol, no hemos podido verificarlo con los datos del estudio. Aun así, esto nos puede servir para dar información sobre un mejor diseño de los pacientes del estudio. Variar la población en el rango de edad, hacer un estudio análogo con mujeres... aunque en este caso el estudio se centraba en este grupo de hombres de estas características.
+
+Con el estudio de probabilidades y centrándonos en la variable de colesterol vemos que para la distribución teórica si fuese una normal el valor de colesterol que deja por debajo el 95% de los hombres del estudio sería de 298 aproximadamente y para nuestros datos es 302, son valores muy parecidos como ya intuíamos por la similitud entre la distribución empírica y la Normal. En 29 términos de este estudio, podríamos catalogar a los individuos por encima de este valor de referencia como grupo de riesgo por tener el colesterol más alto al 95% de los hombres del estudio. Mediante la aproximación de la variable CHD a una binomial podemos hacer suposiciones del alcance de la enfermedad.
+
+Por último, para comparar estadísticamente si los tipos de CHD son diferentes en cuanto al IMC de los pacientes hemos realizado un test ANOVA. Mediante la grafica boxplot vemos que los datos tienen una distribución parecida en cada grupo, observación respaldada por el ANOVA que nos dice que el p valor no es significativo. Mediante la realización de clusters observamos que no hay equilibrio en los grupos, pudiendo deberse a alguna variable que tenga muchos valores dispersos.
