@@ -2,7 +2,13 @@
 title: "Inferencia PEC2"
 author: "Laura Sudupe"
 date: "5/1/2021"
-output: pdf_document
+output: pdf_document:
+    toc: yes
+    toc_depth: 3
+  html_document:
+    toc: yes
+    toc_depth: '3'
+    df_print: paged
 ---
 
 ```{r setup, include=FALSE}
@@ -20,7 +26,32 @@ LoadLibraries <- function() {
 LoadLibraries()
 ```
 
+# Ejercicio 1. Enunciados teóricos
 
+**a) Se lleva a cabo un estudio para comparar la duración de la estancia hospitalaria de pacientes ingresados con el mismo diagnóstico, en dos hospitales A y B que utilizan dos protocolos de gestión diferentes. En lo dos hospitales A y B se observan los siguientes resultados en estancia para dos grupos de pacientes
+• Hospital A | 22, 12, 18, 19, 36, 32, 14, 18, 20, 22
+• Hospital B | 26, 32, 33, 38, 24, 27, 19, 29, 30, 26, 24, 16, 28
+¿Hay diferencias en la duración de la estancia entre los 2 hospitales?**
+
+**b) Para determinar si la refracción esférica ocular es la misma en ambos ojos de los individuos, se midió ésta (en dioptrías) en el ojo derecho y en el izquierdo de 15 personas. Se quiere saber si existen diferencias significativas en la cantidad de dioptrías entre ambos ojos.**
+
+
+**c) Algunos trabajos han descrito una relación inversa entre el consumo moderado de alcohol y los niveles de colesterol. Para comprobar esta hipótesis, se aplica un cuestionario sobre consumo de alcohol a un grupo de 520 hombres, trabajadores de un
+polígono industrial. Se obtienen muestras sanguíneas para determinar sus niveles de
+colesterol. Los sujetos estudiados son clasificados en tres grupos, de acuerdo con el consumo de alcohol manifestado, a saber, “bajo”, “moderado” y “alto”. Se desea
+averiguar si existen diferencias entre los niveles de colesterol de los grupos estudiados, especificando entre qué grupos se producen las diferencias si es que las hay (Nota: El menor grupo supera los 40 sujetos)**
+
+**d) En el contexto de la pandemia de la COVID-19, numerosos test serológicos han sido propuesto para la detección de anticuerpos Anti-SARS-COV_2. En el laboratorio central del hospital han llegado dos nuevos test de dos empresas biotecnológicas, la A y la B, con las mismas características de sensibilidad y especificidad. El personal del laboratorio central quiere comprobar si ambas pruebas coinciden en los resultados. Para ello quieren efectuar un contraste de hipótesis aplicando los dos test a un grupo de 1200 muestras de suero disponibles. Se desea contrastar si ambos test de antígenos coinciden en el diagnóstico.**
+
+
+**e) Se plantea un estudio para examinar los efectos exógenos de la Interlukina-33(IL-33) en las característica biológicas del Carcinoma Hepatocellular(HCC). Se clasifica el nivel de la expresión de la IL-33 en Bajo (H-score<68 en 34 pacientes) y Alto(H-score≥68 en 45 pacientes . ). Se desea conocer si por un lado la edad y por otro el volumen del tumor, que es una variable asimétirca, y el tener o no metástasis se asocian con el nivel de IL-33.**
+
+
+# Ejercicio 2. Ejercicio práctico
+
+**Se dispone de 1092 pacientes mayores de 65 años que fueron ingresados en un hospital por tres patologías(tipocas): síndrome coronario agudo (SCA), accidente cerebrovascular (AVC) y Neumonía(Neumo). Los sujetos fueron asignados a dos grupos: Los casos y controles en función de un tratamiento preventivo recibido(caso). Se midieron algunas variables como el sexo , la edad, antecedentes de cardiopatía y diabetes. Además se disponía de la tensión arterial sistólica(TAS) y el índice de Barthel que es una escala de autonomía del paciente.**
+
+Selecciona 900 casos al azar del fichero para generar la base datos del trabajo
 ```{r}
 (set.seed(99991)) # Sustituye ###### por un número
 
@@ -30,16 +61,110 @@ dades900 <- dades[sample(1:nrow(dades),900,replace=FALSE),]
 
 ```
 
+Las preguntas
+
+Antes de comenzar con las preguntas, vamor a realizar un breve estudio de los datos
+
+```{r}
+summary(dades900)
+```
+
+
+**1) ¿ Existe asociación entre el tener una cardiopatía previa y el tipo de enfermedad por la que ingresó el paciente ? ¿Y con tener diabetes y el tipo de enfermedad por la que ingresó el paciente ?**
+
+Tenemos dos grupos de variables cualitativas, por lo tanto efectuaremos una tabla de contingencia y un contraste de independencia. 
+
+```{r}
+#cardiopatía previa y tipo de enfermedad
+dfcardio <- with(dades900, table(dades900$cardiopatia, dades900$tipocas))
+addmargins(dfcardio)
+prop.table(dfcardio,1)
+```
+
+
+```{r}
+#diabetes y tipo de enfermedad
+dfdiabetes <- with(dades900, table(dades900$diabetes, dades900$tipocas))
+addmargins((dfdiabetes))
+prop.table(dfdiabetes,1)
+```
+Para ver si existe asociación entre las variables, usaremos el test Chi-cuadrado teniendo en cuenta que la hipotesis nula es que no existe relación.
+
+```{r}
+chisq.test(dfcardio)
+chisq.test(dfdiabetes)
+```
+En cuanto a la relación entre cardiopatia previa y tipo de enfermedad de ingreso, obtenemos un p-value por debajo de 0.05, por lo tanto, rechazamos la hipotesis nula de que no hay relación entre las variables. Hay asociación entre la cardiopatia previa y el tipo de enfermedad.
+
+En cambio, si observamos el p-value obtenido para la variable de diabetes y tipo de enfermedad, es mayor que 0.05, aceptando entonces la hipotesis nula, no existe asociación entre las variables.
+
+
+**2) Comprueba la normalidad de las variables tensión arterial(TAS) y score de Barthel.**
+
+Ambas variables son cuantitativas, podemos comprobar la normalidad mediante el test de Shapiro-Wilk en donde la hipotesis nula es que presenta normalidad
+```{r}
+#Tensión arterial
+shapiro.test(dades900$tas)
+
+#Score de Barthel
+shapiro.test(dades900$barthel)
+```
+En ambos casos el test nos da un valor p menos que 0.05, por lo tanto descartamos la normalidad.
+
+
+
+
+**3)¿Existe asociación entre la TAS y el tipo de enfermedad por el que ingreso el paciente? ¿Y entre el score de Barthel y el tipo de Caso?**
+
+En este caso, vamos a comparar si hay asociación entre una variable cuantitativa (TAS) y una variable cualitativa (tipo de enfermedad).
+
+Vamos a comprobar la normalidad de cada grupo mediante los graficos qq plot y un diagrama de cajas
+```{r}
+
+with(dades900, qqnorm(tas[tipocas== "SCA"], main= "Normal QQplot Tipo de enfermedad, SCA"))
+with(dades900, qqline(tas[tipocas=="SCA"]))
+
+with(dades900, qqnorm(tas[tipocas== "ACV"], main= "Normal QQplot Tipo de enfermedad, ACV"))
+with(dades900, qqline(tas[tipocas=="ACV"]))
+
+with(dades900, qqnorm(tas[tipocas== "Neumo"], main= "Normal QQplot Tipo de enfermedad, Neumo"))
+with(dades900, qqline(tas[tipocas=="Neumo"]))
+```
+```{r}
+with(dades900, boxplot(tas~tipocas))
+
+```
+En los tres grupos, los extremos se alejan de la recta de normalidad, pero el diagrama de cajas nos muestra que tenemos una distribución simetrica. Comprobaremos la normalidad con el test Shapiro-Wilk
+```{r}
+with(dades900, shapiro.test(tas[tipocas=="SCA"]))
+with(dades900, shapiro.test(tas[tipocas=="ACV"]))
+with(dades900, shapiro.test(tas[tipocas=="Neumo"]))
+```
+En todas obtenemos que los test son significativos y descartamos la normalidad. Tenemos un tamaño grande de muestra y la media es buena medida descriptiva. Como no tenemos una distribución normal, para ver la asociación vamos a usar un test no-parametrico. Estaremos asumiendo como hipotesis nula que la distribución de TAS en los tres grupos es la misma. Realizaremos la prueba Kruskal-Wallis .
+```{r}
+with(dades900, kruskal.test(tas~tipocas))
+```
+Tenemosun valor significativo, por lo tanto descartamos la hipotesis nula. Consideramos que si hay asociación entre la presión arterial histolica y las patologias previas.
+
+
+**4)¿Existe asociación entre la TAS y el ser caso o control? ¿Y entre el Barthel y el ser caso o control?**
+
+
+Selecciona 40 casos al azar de la base de datos
+
+**5)¿ Existe asociación entre la TAS y el ser caso o control ? ¿ y entre el Barthel y el ser caso o control ?**
 
 
 
 
 
 
+# Ejercicio 3. Algunas cosas más
+
+**a) Indica para que te podrían servir las técnicas de bootstrap en los análisis estadísticos que has realizado. Calcula el intervalo utilizando Bootstrap de la mediana de la tensión arterial**
 
 
-
-
+**b) Indica porqué hay que utilizar técnicas de comparacion múltiple como la corrección de Bonferroni**
 
 
 
