@@ -146,8 +146,42 @@ with(dades900, kruskal.test(tas~tipocas))
 ```
 Tenemosun valor significativo, por lo tanto descartamos la hipotesis nula. Consideramos que si hay asociación entre la presión arterial histolica y las patologias previas.
 
+Vamos a comprobar si existe asociación entre el índice de Barthel y la patologia previa.
+
+Como antes, vamos a comprobar la normalidad de cada grupo mediante los graficos qq plot y un diagrama de cajas
+```{r}
+
+with(dades900, qqnorm(barthel[tipocas== "SCA"], main= "Normal QQplot Tipo de enfermedad, SCA"))
+with(dades900, qqline(barthel[tipocas=="SCA"]))
+
+with(dades900, qqnorm(barthel[tipocas== "ACV"], main= "Normal QQplot Tipo de enfermedad, ACV"))
+with(dades900, qqline(barthel[tipocas=="ACV"]))
+
+with(dades900, qqnorm(barthel[tipocas== "Neumo"], main= "Normal QQplot Tipo de enfermedad, Neumo"))
+with(dades900, qqline(barthel[tipocas=="Neumo"]))
+```
+Estos graficos estan lejos de la normalidad
+
+```{r}
+with(dades900, boxplot(barthel~tipocas))
+```
+Tenemos demasiados outliers. 
+En este caso tambien vamos a usar un test no-parametrico 
+```{r}
+with(dades900, kruskal.test(barthel~tipocas))
+```
+Es significativo, descartamos la hipotesis nula, consideramos que si hay asociación entre el indice de autonomia y el tipo de patologia previa.
+
 
 **4)¿Existe asociación entre la TAS y el ser caso o control? ¿Y entre el Barthel y el ser caso o control?**
+
+
+
+
+
+
+
+
 
 
 Selecciona 40 casos al azar de la base de datos
