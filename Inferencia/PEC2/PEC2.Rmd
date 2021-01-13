@@ -28,23 +28,35 @@ LoadLibraries()
 
 # Ejercicio 1. Enunciados teóricos
 
-**a) Se lleva a cabo un estudio para comparar la duración de la estancia hospitalaria de pacientes ingresados con el mismo diagnóstico, en dos hospitales A y B que utilizan dos protocolos de gestión diferentes. En lo dos hospitales A y B se observan los siguientes resultados en estancia para dos grupos de pacientes
-• Hospital A | 22, 12, 18, 19, 36, 32, 14, 18, 20, 22
-• Hospital B | 26, 32, 33, 38, 24, 27, 19, 29, 30, 26, 24, 16, 28
-¿Hay diferencias en la duración de la estancia entre los 2 hospitales?**
+**a) Se lleva a cabo un estudio para comparar la duración de la estancia hospitalaria de pacientes ingresados con el mismo diagnóstico, en dos hospitales A y B que utilizan dos protocolos de gestión diferentes. En lo dos hospitales A y B se observan los siguientes resultados en estancia para dos grupos de pacientes.• Hospital A | 22, 12, 18, 19, 36, 32, 14, 18, 20, 22.• Hospital B | 26, 32, 33, 38, 24, 27, 19, 29, 30, 26, 24, 16, 28 ¿Hay diferencias en la duración de la estancia entre los 2 hospitales?**
+
+Tenemos variables cuantitativas discretas. Este tipo de datos suele mostrar simetria. Comprobamos la distribución de normalidad con Shapiro-Wilks.
+Realizaria un t-test que es un test parametrico para comparar ambos grupos
 
 **b) Para determinar si la refracción esférica ocular es la misma en ambos ojos de los individuos, se midió ésta (en dioptrías) en el ojo derecho y en el izquierdo de 15 personas. Se quiere saber si existen diferencias significativas en la cantidad de dioptrías entre ambos ojos.**
 
+Tenemos dos grupos de variables cualitativas, este tipo de datos suele mostrar simetria. Como en el anterior ejercicio realizaria un Shapiro-Wilk para comprobar distribución de normalidad. A raiz de lo que obtuviera realizaria una prueba parametrica (si acepto Ho) como t-test o no parametrica (si rechazo Ho) como Suma rango de Wilcoxon.
 
-**c) Algunos trabajos han descrito una relación inversa entre el consumo moderado de alcohol y los niveles de colesterol. Para comprobar esta hipótesis, se aplica un cuestionario sobre consumo de alcohol a un grupo de 520 hombres, trabajadores de un
-polígono industrial. Se obtienen muestras sanguíneas para determinar sus niveles de
-colesterol. Los sujetos estudiados son clasificados en tres grupos, de acuerdo con el consumo de alcohol manifestado, a saber, “bajo”, “moderado” y “alto”. Se desea
-averiguar si existen diferencias entre los niveles de colesterol de los grupos estudiados, especificando entre qué grupos se producen las diferencias si es que las hay (Nota: El menor grupo supera los 40 sujetos)**
+**c) Algunos trabajos han descrito una relación inversa entre el consumo moderado de alcohol y los niveles de colesterol. Para comprobar esta hipótesis, se aplica un cuestionario sobre consumo de alcohol a un grupo de 520 hombres, trabajadores de un polígono industrial. Se obtienen muestras sanguíneas para determinar sus niveles de colesterol. Los sujetos estudiados son clasificados en tres grupos, de acuerdo con el consumo de alcohol manifestado, a saber, “bajo”, “moderado” y “alto”. Se desea averiguar si existen diferencias entre los niveles de colesterol de los grupos estudiados, especificando entre qué grupos se producen las diferencias si es que las hay (Nota: El menor grupo supera los 40 sujetos)**
+
+Por un lado tenemos una variable cuantitativa, que son los niveles de colesterol en sangre, y por otro cualitativa, que son los grupos de consumo de alcohol.
+Tenemos dos opciones, por un lado, hacerlo con los datos como estan. En este caso realizariamos un test para comprobar la normalidad y dependiendo del resultado pasariamos a una prueba parametrica o no parametrica para ver si hay diferencias.
+
+Por otro lado, podemos categorizar los datos de los niveles de colesterol entre grupos, tales como Alto y Bajo. En este caso, tendriamos dos grupos de variables cualitativas. Por lo que procederiamos a realizar tablas de contingencias y efectuar un contraste de independencia donde la Ho seria que no existe relación entre las variables. Como el menos grupo supera los 40 sujetos, realizariamos un test chi-cuadrado. 
+
 
 **d) En el contexto de la pandemia de la COVID-19, numerosos test serológicos han sido propuesto para la detección de anticuerpos Anti-SARS-COV_2. En el laboratorio central del hospital han llegado dos nuevos test de dos empresas biotecnológicas, la A y la B, con las mismas características de sensibilidad y especificidad. El personal del laboratorio central quiere comprobar si ambas pruebas coinciden en los resultados. Para ello quieren efectuar un contraste de hipótesis aplicando los dos test a un grupo de 1200 muestras de suero disponibles. Se desea contrastar si ambos test de antígenos coinciden en el diagnóstico.**
 
+Tenemos dos grupos que queremos comparar en cuestion de porcentajes de coincidencia de diagnostico. Podemos usar un test de comparación de porcentajes como test Z o medir la asociación mediante Chi-cuadrado.
+
 
 **e) Se plantea un estudio para examinar los efectos exógenos de la Interlukina-33(IL-33) en las característica biológicas del Carcinoma Hepatocellular(HCC). Se clasifica el nivel de la expresión de la IL-33 en Bajo (H-score<68 en 34 pacientes) y Alto(H-score≥68 en 45 pacientes . ). Se desea conocer si por un lado la edad y por otro el volumen del tumor, que es una variable asimétirca, y el tener o no metástasis se asocian con el nivel de IL-33.**
+
+Tenemos una variable cualitativa que es la expresion de IL-33(alto/bajo). Queremos conocer la asociación con tres variables mas, edad (cuantitativa), volumen tumor (cuantitativa) y metastasis (cualitativa).
+
+Lo hariamos a partes, seguramente sean variables no simetricas, comprobariamos la normalidad con las variables respuesta mediante test Shapiro-Wilk. Por un lado respecto las variables cuantitativas realizariamos una prueba no-parametrica que compare distribuciones como Kruskal-Wallis. Podemos comparar si las parejas son diferentes con el test Dunn.
+
+En cuanto la variable cualitativa, metastasis, habria que compararlo con un prueba de asociación como chi-cuadrado.
 
 
 # Ejercicio 2. Ejercicio práctico
