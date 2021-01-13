@@ -245,10 +245,62 @@ Selecciona 40 casos al azar de la base de datos
 
 Realizaremos el mismo procedimiento que en el punto 4. Vamos a ver si el tamaño de la muestra nos da valores diferentes en los test.
 ```{r}
+set.seed(9991)
 dades40 <- dades[sample(1:nrow(dades),40,replace=FALSE),]
 ```
 
+Vamos a realizar las graficas QQ-plot y la grafica de cajas
+```{r}
+with(dades40, qqnorm(tas[caso== "Control"], main= "Normal QQplot caso: control"))
+with(dades40, qqline(tas[caso=="Control"]))
 
+with(dades40, qqnorm(tas[caso== "Caso"], main= "Normal QQplot caso: caso"))
+with(dades40, qqline(tas[caso=="Caso"]))
+
+with(dades40, boxplot(tas~caso))
+```
+
+
+```{r}
+#test Shapiro
+with(dades40, shapiro.test(tas[caso=="Control"]))
+with(dades40, shapiro.test(tas[caso=="Caso"]))
+```
+En ambos casos no descartamos la hipotesis nula, cosideramos que hay normalidad. Por lo tanto, realizaremos una prueba parametrica. Al haber 2 grupos no realizaremos ANOVA. Realizarmos la prueba t-test. Comprobamos la homogeneidad de varianzas con Levene
+```{r}
+with(dades40,leveneTest(tas~caso ))
+```
+Tenemos un valor p mayor que 0.05 con lo cual no rechazamos la hipotesis nula de igualdad de varianzas y utilizaremos un t-test de varianzas iguales ya que asumimos normalidad.
+```{r}
+with(dades40,t.test(tas~caso,var.equal=TRUE ))
+```
+p value mayor que 0.05, no rechazamos la hipotesis de igualdad de medias. Asumimos no hay diferencias de presión sistolica segun el grupo al que pertenece.
+
+En cuanto a la variable cuantitativa barthel
+```{r}
+with(dades40, qqnorm(barthel[caso== "Control"], main= "Normal QQplot caso: control"))
+with(dades40, qqline(barthel[caso=="Control"]))
+
+with(dades40, qqnorm(barthel[caso== "Caso"], main= "Normal QQplot caso: caso"))
+with(dades40, qqline(barthel[caso=="Caso"]))
+
+with(dades40, boxplot(barthel~caso))
+```
+No se ajusta la normalidad a la linea. Hay simetria pero muchos outliers y no es una muestra grande.
+
+```{r}
+#test Shapiro
+with(dades40, shapiro.test(barthel[caso=="Control"]))
+with(dades40, shapiro.test(barthel[caso=="Caso"]))
+```
+En ambos casos tenemos p-value significativo, rechazamos hipotesis nula de normalidad. Realizamos prueba parametrica. Elegimos el test Wilcoxon porque tenemos 2 grupos
+```{r}
+with(dades40,wilcox.test(barthel~caso))
+```
+No parece que haya diferencias entre la escala de autonomia del paciente y ser del grupo caso o control.
+
+
+```
 
 
 
