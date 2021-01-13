@@ -140,7 +140,7 @@ with(dades900, shapiro.test(tas[tipocas=="SCA"]))
 with(dades900, shapiro.test(tas[tipocas=="ACV"]))
 with(dades900, shapiro.test(tas[tipocas=="Neumo"]))
 ```
-En todas obtenemos que los test son significativos y descartamos la normalidad. Tenemos un tamaño grande de muestra y la media es buena medida descriptiva. Como no tenemos una distribución normal, para ver la asociación vamos a usar un test no-parametrico. Estaremos asumiendo como hipotesis nula que la distribución de TAS en los tres grupos es la misma. Realizaremos la prueba Kruskal-Wallis .
+En todas obtenemos que los test son significativos y descartamos la normalidad. Tenemos un tamaño grande de muestra y la media es buena medida descriptiva. Como no tenemos una distribución normal, para ver la asociación vamos a usar un test no-parametrico. Estaremos asumiendo como hipotesis nula que la distribución de TAS en los tres grupos es la misma. Realizaremos la prueba Kruskal-Wallis . Si quisieramos hacer un test parametrico, realizariamos ANOVA. Comprobariamos la homogeneidad de las varianzas con Levene.
 ```{r}
 with(dades900, kruskal.test(tas~tipocas))
 ```
@@ -160,13 +160,21 @@ with(dades900, qqline(barthel[tipocas=="ACV"]))
 with(dades900, qqnorm(barthel[tipocas== "Neumo"], main= "Normal QQplot Tipo de enfermedad, Neumo"))
 with(dades900, qqline(barthel[tipocas=="Neumo"]))
 ```
-Estos graficos estan lejos de la normalidad
+Estos graficos estan lejos de la normalidad, vamos a ver que nos muestra la representación de cajas
 
 ```{r}
 with(dades900, boxplot(barthel~tipocas))
 ```
 Tenemos demasiados outliers. 
-En este caso tambien vamos a usar un test no-parametrico 
+
+```{r}
+with(dades900, shapiro.test(barthel[tipocas=="SCA"]))
+with(dades900, shapiro.test(barthel[tipocas=="ACV"]))
+with(dades900, shapiro.test(barthel[tipocas=="Neumo"]))
+```
+
+Como era de esperar, descartamos la hipotesis nula de una distribución normal. Teniendo en cuenta los resultado
+en este caso tambien vamos a usar un test no-parametrico .
 ```{r}
 with(dades900, kruskal.test(barthel~tipocas))
 ```
@@ -174,6 +182,8 @@ Es significativo, descartamos la hipotesis nula, consideramos que si hay asociac
 
 
 **4)¿Existe asociación entre la TAS y el ser caso o control? ¿Y entre el Barthel y el ser caso o control?**
+
+Vamos a ver si hay asociación entre la variable cualitativa TAS (presión arterial sistólica) y la variable cualitativa ser caso o control. Realizaremos una tabla de contingencia y efectuaremos un contraste de independencia donde la Ho es que no existe relación entre las variables.
 
 
 
