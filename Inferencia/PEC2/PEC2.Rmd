@@ -19,7 +19,7 @@ knitr::opts_chunk$set(echo = TRUE)
 ```{r, echo = FALSE, message = FALSE}
 # Función para cargar todos los paquetes necesarios
 LoadLibraries <- function() {
-  myLibraries <- c("foreign")
+  myLibraries <- c("foreign","car")
   invisible(lapply(myLibraries, library, character.only = TRUE))
 }
 
@@ -183,14 +183,59 @@ Es significativo, descartamos la hipotesis nula, consideramos que si hay asociac
 
 **4)¿Existe asociación entre la TAS y el ser caso o control? ¿Y entre el Barthel y el ser caso o control?**
 
-Vamos a ver si hay asociación entre la variable cualitativa TAS (presión arterial sistólica) y la variable cualitativa ser caso o control. Realizaremos una tabla de contingencia y efectuaremos un contraste de independencia donde la Ho es que no existe relación entre las variables.
+Vamos a ver si hay asociación entre la variable cuantitativa TAS (presión arterial sistólica) y la variable cualitativa ser caso o control. Como en los casos anteriores, procederemos a ver realizar los graficos QQ-plot para ver si muestra normalidad, los graficos boxplot para ver la simetria y un Shapiro test para ver si se mantiene la hipotesis nula de que hay una distribución normal. A partir de estos resultados, determinaremos si hay que hacer una prueba de contraste parametrica o no-parametrica
+```{r}
+with(dades900, qqnorm(tas[caso== "Control"], main= "Normal QQplot caso: control"))
+with(dades900, qqline(tas[caso=="Control"]))
 
+with(dades900, qqnorm(tas[caso== "Caso"], main= "Normal QQplot caso: caso"))
+with(dades900, qqline(tas[caso=="Caso"]))
 
+with(dades900, boxplot(tas~caso))
+```
+```{r}
+#test Shapiro
+with(dades900, shapiro.test(tas[caso=="Control"]))
+with(dades900, shapiro.test(tas[caso=="Caso"]))
+```
+En ambos casos descartamos la hipotesis nula de normalidad. Hemos visto en las graficas, que la media es un buen descriptor, y dado que tenemos un tamaño suficientemente grande, realizaremos un test no-parametrico.
+Comprobaremos la igualdad de varianzas.
+```{r}
+with(dades900,leveneTest(tas~caso ))
+```
+Tenemos un valor p mayor que 0.05 con lo cual no rechazamos la hipotesis nula de igualdad de varianzas y utilizaremos un t-test de varianzas iguales
+```{r}
+with(dades900,t.test(tas~caso,var.equal=TRUE ))
+```
+Un valor p menor que 0.05, con lo cual rechazamos la hipotesis de igualdad de medias de la presión arterial sistolica entre los grupos de caso y control. Realizaremos el test de Suma-rango de Wilcoxon
+```{r}
+with(dades900,wilcox.test(tas~caso))
+```
 
+Rechazamos la hipotesis nula de no diferencias. Hay asociación entre las distribuciones.
 
+A continuación veremos si hay asociación entre la variable cuantitativa Barthel y ser caso o control. El procedimiento a seguir es el mismo.
+```{r}
+with(dades900, qqnorm(barthel[caso== "Control"], main= "Normal QQplot caso: control"))
+with(dades900, qqline(barthel[caso=="Control"]))
 
+with(dades900, qqnorm(barthel[caso== "Caso"], main= "Normal QQplot caso: caso"))
+with(dades900, qqline(barthel[caso=="Caso"]))
 
+with(dades900, boxplot(barthel~caso))
+```
 
+Los valores se alejan de la recta de normalidad y la simetria no es la adecuada. Realizaremos test Shapiro para normalidad, ademas hay muchos outliers.
+```{r}
+#test Shapiro
+with(dades900, shapiro.test(barthel[caso=="Control"]))
+with(dades900, shapiro.test(barthel[caso=="Caso"]))
+```
+Ambas tienen un resultado significativo, rechazamos hipotesis nula de distribución normal. Vamos a relizar un test no-parametrico.
+```{r}
+with(dades900,wilcox.test(barthel~caso))
+```
+tenemos un valor p por encima de 0.05, no rechazamos la hipotesis nula. Por lo tanto, consideramos que no hay asociación
 
 
 
@@ -198,6 +243,10 @@ Selecciona 40 casos al azar de la base de datos
 
 **5)¿ Existe asociación entre la TAS y el ser caso o control ? ¿ y entre el Barthel y el ser caso o control ?**
 
+Realizaremos el mismo procedimiento que en el punto 4. Vamos a ver si el tamaño de la muestra nos da valores diferentes en los test.
+```{r}
+dades40 <- dades[sample(1:nrow(dades),40,replace=FALSE),]
+```
 
 
 
