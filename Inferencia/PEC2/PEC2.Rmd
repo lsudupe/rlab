@@ -1,6 +1,6 @@
 ---
-title: "Untitled"
-author: "Laura Sudupe"
+title: "PEC2 Inferencia"
+author: "Laura Sudupe Medinilla"
 date: "13/1/2021"
 output:
   word_document: default
@@ -324,37 +324,21 @@ En nuestro caso, si tenemos suposiciones que estan en duda, seria un metodo alte
 
 Vamos a calcular el intervalo utilizando Bootstrap de la mediana de la tensión arterial
 
-
 ```{r}
-# necesitamos un data.frame
-dfbootstrap <- data.frame(dades$tas) 
+a <- c(dades$tas)
+dfbootstrap <- data.frame(a)
 
-media <- function(dfbootstrap, indices)
-{
-  d <- dfbootstrap[indices,]
-  mean(d)
-}
-
-replicas <- boot(data= dfbootstrap, statistic =media, R=5000)
+boot.mean=function(dfbootstrap,indices) 
+  mean(dfbootstrap[indices],na.rm=TRUE)
+mx=boot(dfbootstrap$a,boot.mean,2000)
+boot.ci(mx)
 ```
-
-Vemos los elementos de replicas
-```{r}
-names(replicas)
-```
-Calculamos el sesgo
-```{r}
-sesgo <- abs(mean(replicas$t)- (replicas$t0))
-sesgo
-```
-
-
-
-
-
-
 
 **b) Indica porqué hay que utilizar técnicas de comparacion múltiple como la corrección de Bonferroni**
 
+El valor de o representa la probabilidad de que la diferencia observada se deba al azar. Nos conformamos con el riesgo de error del 5% que llamamos error tipo I, rechazando la hipotesis nula cuando es cierta y la diferencia se debe al azar.
 
+Cuando comparamos las medias de mas de dos muestras la cosa se complica, y recurrimos al analisis de la varianza (si las muestras se distribuyen de forma normal y sus varianzas son iguales), asi obtenemos un valor p, realizamos una prueba de contraste y vamos haciendo comparaciones dependiendo la cantidad de grupos. Sin embargo, cuanto mayor es el numero de comparaciones, mayor es el riesgo de meter la pata. Al hacer cada contraste, la probabilidad de un significativo es de 0.05 y la de un no significativo de 0.95. Si hacemos 30 comparaciones independientes, la probabilidad de que ninguno sea significativo sera de 0.95 x 30, haciendo con esto que el error de tipo I aumente. ¿La solución? la corrección de Bonferroni. 
+
+Es un metodo  para considerar diferencias estadisticamente significativas entre muchos grupos sin aumentar el riesgo de error de tipo I.
 
