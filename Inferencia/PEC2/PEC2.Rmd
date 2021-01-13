@@ -1,13 +1,10 @@
 ---
-title: "Inferencia PEC2"
+title: "Untitled"
 author: "Laura Sudupe"
-date: "5/1/2021"
-output: pdf_document:
-    toc: yes
-    toc_depth: 3
+date: "13/1/2021"
+output:
+  word_document: default
   html_document:
-    toc: yes
-    toc_depth: '3'
     df_print: paged
 ---
 
@@ -19,12 +16,15 @@ knitr::opts_chunk$set(echo = TRUE)
 ```{r, echo = FALSE, message = FALSE}
 # Función para cargar todos los paquetes necesarios
 LoadLibraries <- function() {
-  myLibraries <- c("foreign","car")
+  myLibraries <- c("foreign","car", "boot")
   invisible(lapply(myLibraries, library, character.only = TRUE))
 }
 
 LoadLibraries()
 ```
+
+
+
 
 # Ejercicio 1. Enunciados teóricos
 
@@ -142,6 +142,7 @@ with(dades900, qqline(tas[tipocas=="ACV"]))
 with(dades900, qqnorm(tas[tipocas== "Neumo"], main= "Normal QQplot Tipo de enfermedad, Neumo"))
 with(dades900, qqline(tas[tipocas=="Neumo"]))
 ```
+
 ```{r}
 with(dades900, boxplot(tas~tipocas))
 
@@ -312,32 +313,48 @@ with(dades40,wilcox.test(barthel~caso))
 No parece que haya diferencias entre la escala de autonomia del paciente y ser del grupo caso o control.
 
 
-```
-
-
 
 # Ejercicio 3. Algunas cosas más
 
 **a) Indica para que te podrían servir las técnicas de bootstrap en los análisis estadísticos que has realizado. Calcula el intervalo utilizando Bootstrap de la mediana de la tensión arterial**
 
+El metodo bootstrap asigna medidas de precision(sesgo, varianza, intervalos de confianza..) a las estimaciones de muestra. Con esto, se puede estimar la distribución muestral de casi cualquier estadistica utilizando metodos de muestreo aleatorio. Srive tambien para construir pruebas de hipotesis, si la inferencia estadistica basada en la suposicion de un modelo parametrico esta en duda, se puede usar como alternativa. Tambien cuando la inferencia parametrica es imposible o requiere formulas complicadas para calculo de errores estandar.
+
+En nuestro caso, si tenemos suposiciones que estan en duda, seria un metodo alternativo a usar.
+
+Vamos a calcular el intervalo utilizando Bootstrap de la mediana de la tensión arterial
+
+
+```{r}
+# necesitamos un data.frame
+dfbootstrap <- data.frame(dades$tas) 
+
+media <- function(dfbootstrap, indices)
+{
+  d <- dfbootstrap[indices,]
+  mean(d)
+}
+
+replicas <- boot(data= dfbootstrap, statistic =media, R=5000)
+```
+
+Vemos los elementos de replicas
+```{r}
+names(replicas)
+```
+Calculamos el sesgo
+```{r}
+sesgo <- abs(mean(replicas$t)- (replicas$t0))
+sesgo
+```
+
+
+
+
+
+
 
 **b) Indica porqué hay que utilizar técnicas de comparacion múltiple como la corrección de Bonferroni**
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
